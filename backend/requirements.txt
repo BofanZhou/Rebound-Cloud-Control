@@ -1,0 +1,12 @@
+# FastAPI 核心依赖 - 兼容 Python 3.13
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# 数据验证 - 使用 Python 3.13 兼容版本
+pydantic>=2.9.0
+
+# CORS 支持
+python-multipart>=0.0.12
+
+# WebSocket 支持
+websockets>=13.0
