@@ -182,7 +182,7 @@ class MachineManager:
                 break
 
 
-# 全局机器管理器实例 - 懒加载
+# 全局机器管理器实例 - 真正延迟加载
 _machine_manager_instance = None
 
 def get_machine_manager():
@@ -192,5 +192,9 @@ def get_machine_manager():
         _machine_manager_instance = MachineManager(data_dir=_data_dir)
     return _machine_manager_instance
 
-# 保持兼容性：module-level access
-machine_manager = get_machine_manager()
+# 使用 property 实现真正的延迟访问
+class _MachineManagerProxy:
+    def __getattr__(self, name):
+        return getattr(get_machine_manager(), name)
+
+machine_manager = _MachineManagerProxy()

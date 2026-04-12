@@ -215,7 +215,7 @@ class AuthService:
         return token_data["role"] in required_roles
 
 
-# 全局认证服务实例 - 懒加载
+# 全局认证服务实例 - 真正延迟加载
 _auth_service_instance = None
 
 def get_auth_service():
@@ -225,5 +225,9 @@ def get_auth_service():
         _auth_service_instance = AuthService(data_dir=_data_dir)
     return _auth_service_instance
 
-# 保持兼容性：module-level access  
-auth_service = get_auth_service()
+# 使用 property 实现真正的延迟访问
+class _AuthServiceProxy:
+    def __getattr__(self, name):
+        return getattr(get_auth_service(), name)
+
+auth_service = _AuthServiceProxy()
