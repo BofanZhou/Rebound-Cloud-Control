@@ -16,6 +16,16 @@ import type {
 const API_BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
 const REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS || 12000)
 
+function getFallbackBaseList(): string[] {
+  // Primary base first, then fallback without /api prefix for platforms
+  // that forward to backend root paths.
+  const bases = [API_BASE]
+  if (API_BASE === '/api') {
+    bases.push('')
+  }
+  return bases
+}
+
 function getToken(): string | null {
   return localStorage.getItem('token')
 }
@@ -65,22 +75,36 @@ async function request<T>(url: string, options?: RequestInit): Promise<ApiRespon
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
   try {
-    const response = await fetch(`${API_BASE}${url}`, {
-      headers,
-      ...options,
-      signal: controller.signal,
-    })
+    const bases = getFallbackBaseList()
+    let lastError: Error | null = null
 
-    if (!response.ok) {
+    for (let i = 0; i < bases.length; i++) {
+      const base = bases[i]
+      const response = await fetch(`${base}${url}`, {
+        headers,
+        ...options,
+        signal: controller.signal,
+      })
+
+      if (response.ok) {
+        return response.json()
+      }
+
       if (response.status === 401) {
         logoutAndRedirectToLogin()
         throw new Error('Unauthorized or session expired')
       }
 
-      throw new Error(await parseErrorMessage(response))
+      // Fallback only when primary /api route is not found.
+      if (response.status === 404 && i < bases.length - 1) {
+        continue
+      }
+
+      lastError = new Error(await parseErrorMessage(response))
+      break
     }
 
-    return response.json()
+    throw lastError || new Error('Request failed')
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new Error(`Request timeout (>${REQUEST_TIMEOUT_MS}ms)`)
