@@ -1,7 +1,6 @@
 """
 Steel pipe springback compensation system backend service.
 """
-import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -93,6 +92,8 @@ async def health_check():
 
 
 if __name__ == "__main__":
+    import uvicorn
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

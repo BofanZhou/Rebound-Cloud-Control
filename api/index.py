@@ -33,8 +33,8 @@ except Exception as exc:
 
     app = FastAPI()
 
-    @app.get('/')
-    @app.get('/api/{path:path}')
+    @app.api_route('/', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'])
+    @app.api_route('/api/{path:path}', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'])
     async def error_handler(path: str = ''):
         return JSONResponse(
             status_code=500,
