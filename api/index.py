@@ -69,8 +69,14 @@ async def unhandled_exception_handler(_request: Request, _exc: Exception):
     )
 
 
-# Note: In Vercel, the /api prefix is already handled by the routing
-# So we don't add /api prefix here
+# Primary routes (frontend uses /api/*)
+app.include_router(recommend_router, prefix="/api")
+app.include_router(device_router, prefix="/api")
+app.include_router(history_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(machines_router, prefix="/api")
+
+# Compatibility fallback routes (for environments that strip /api)
 app.include_router(recommend_router, prefix="")
 app.include_router(device_router, prefix="")
 app.include_router(history_router, prefix="")
