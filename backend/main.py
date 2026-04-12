@@ -67,6 +67,14 @@ app.include_router(history_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(machines_router, prefix="/api")
 
+# Vercel rewrite behavior can vary by project settings.
+# Register non-/api paths as compatibility fallback.
+app.include_router(recommend_router)
+app.include_router(device_router)
+app.include_router(history_router)
+app.include_router(auth_router)
+app.include_router(machines_router)
+
 
 @app.get("/")
 async def root():
