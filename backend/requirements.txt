@@ -10,3 +10,6 @@ python-multipart>=0.0.12
 
 # WebSocket 支持
 websockets>=13.0
+
+# Vercel Serverless 支持
+mangum>=0.17.0
