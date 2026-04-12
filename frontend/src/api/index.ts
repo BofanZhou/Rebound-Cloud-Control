@@ -14,7 +14,8 @@ import type {
   UserInfo,
 } from '../types'
 
-const API_BASE = '/api'
+// API 基础地址，生产环境使用环境变量
+const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
 // 获取token
 function getToken(): string | null {
