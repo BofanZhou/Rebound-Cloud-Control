@@ -14,8 +14,9 @@ import type {
   UserInfo,
 } from '../types'
 
-// API 基础地址，生产环境使用环境变量
-const API_BASE = import.meta.env.VITE_API_BASE || '/api'
+// API 基础地址
+// Vercel 部署时前后端同域名，使用相对路径
+const API_BASE = '/api'
 
 // 获取token
 function getToken(): string | null {
