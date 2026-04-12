@@ -1,109 +1,114 @@
-# PaaS 部署指南（临时演示）
+# Vercel 部署指南（推荐）
 
-使用 Vercel（前端）+ Render（后端）免费部署，5 分钟上线。
-
----
-
-## 前置准备
-
-1. 代码推送到 GitHub
-2. 注册 [Vercel](https://vercel.com) 账号（用 GitHub 登录）
-3. 注册 [Render](https://render.com) 账号
+使用 Vercel 统一部署前后端，**完全免费，无需信用卡**。
 
 ---
 
-## 第一步：部署后端（Render）
+## ⚠️ 重要限制
 
-1. 登录 [Render Dashboard](https://dashboard.render.com)
-2. 点击 **New +** → **Web Service**
-3. 选择你的 GitHub 仓库
-4. 填写配置：
-   - **Name**: `rebound-api`（或你喜欢的名字）
-   - **Environment**: `Python`
-   - **Root Directory**: `backend`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. 点击 **Create Web Service**
+Vercel Serverless 有 **10 秒超时限制**，刚好满足当前模拟设备需求（3-8 秒）。
 
-等待 2-3 分钟部署完成，会获得一个地址：`https://rebound-api-xxxx.onrender.com`
-
-**复制这个地址，下一步要用。**
+数据存储在内存中，**每次重新部署或函数冷启动后数据会重置**，适合临时演示。
 
 ---
 
-## 第二步：配置前端 API 地址
+## 部署步骤
 
-修改 `frontend/.env.production`：
+### 1. 推送代码到 GitHub
 
-```env
-VITE_API_BASE=https://rebound-api-xxxx.onrender.com/api
-```
-
-**把地址换成你实际的后端地址**
-
-提交并推送到 GitHub：
 ```bash
 git add .
-git commit -m "配置生产环境 API 地址"
+git commit -m "配置 Vercel 部署"
 git push
 ```
 
+### 2. 注册并登录 Vercel
+
+1. 打开 [vercel.com](https://vercel.com)
+2. 用 GitHub 账号登录
+3. 点击 **Add New...** → **Project**
+
+### 3. 导入项目
+
+1. 选择你的 GitHub 仓库 `Rebound-Cloud-Control`
+2. **Framework Preset**: 选择 `Other`
+3. 配置如下：
+
+| 配置项 | 值 |
+|--------|-----|
+| Build Command | `cd frontend && npm install && npm run build` |
+| Output Directory | `frontend/dist` |
+| Install Command | `npm install` |
+
+4. 展开 **Environment Variables**，添加：
+
+| Name | Value |
+|------|-------|
+| `PYTHONPATH` | `backend` |
+
+5. 点击 **Deploy**
+
+### 4. 配置 API 路由（重要）
+
+部署完成后，进入项目设置：
+
+1. 点击 **Settings** → **Functions**
+2. 确保 **Function Region** 选择靠近你的地区（如 `sin1` 新加坡）
+3. 点击保存
+
+### 5. 重新部署
+
+如果第一次部署后 API 访问有问题，点击 **Redeploy** 重新部署。
+
 ---
 
-## 第三步：部署前端（Vercel）
+## 访问地址
 
-1. 登录 [Vercel Dashboard](https://vercel.com/dashboard)
-2. 点击 **Add New...** → **Project**
-3. 选择你的 GitHub 仓库
-4. **Framework Preset**: 选择 `Vite`
-5. **Root Directory**: 设置为 `frontend`
-6. 点击 **Deploy**
+部署完成后，Vercel 会给你一个域名：
 
-等待 1-2 分钟，会获得一个地址：`https://rebound-cloud-xxxx.vercel.app`
+```
+https://rebound-cloud-control-xxxx.vercel.app
+```
 
----
-
-## 完成！
-
-现在你可以把 `https://rebound-cloud-xxxx.vercel.app` 发给任何人访问了！
-
-**默认账号：**
-- 管理员：admin / admin123
-- 维修人员：maintenance / maint123
-- 操作员：operator / oper123
+**前后端统一在这个域名下：**
+- 前端：`https://xxx.vercel.app/`
+- API：`https://xxx.vercel.app/api/`
 
 ---
 
-## 注意事项
+## 默认账号
 
-⚠️ **数据不会持久保存** - Render 免费版服务休眠后重启，数据会重置（符合原型演示需求）
-
-⚠️ **首次访问较慢** - Render 免费版服务休眠后，首次访问需要 30 秒左右唤醒
-
----
-
-## 自定义域名（可选）
-
-### Vercel 自定义域名
-1. 进入 Vercel 项目 → Settings → Domains
-2. 添加你的域名，按提示配置 DNS
-
-### Render 自定义域名
-1. 进入 Render 服务 → Settings → Custom Domains
-2. 添加域名并验证
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | admin123 |
+| 维修人员 | maintenance | maint123 |
+| 操作员 | operator | oper123 |
 
 ---
 
 ## 故障排查
 
-### 前端无法连接后端
-- 检查 `.env.production` 中的 API 地址是否正确
-- 检查后端 CORS 配置是否允许前端域名
+### API 返回 404
+- 检查 `vercel.json` 配置是否正确
+- 确保 `api/index.py` 存在
+- 尝试重新部署
 
-### 部署失败
-- 检查 Build Logs 查看具体错误
-- 确保 `requirements.txt` 包含所有依赖
+### API 返回 500
+- 检查 Vercel Functions 日志
+- 可能是 Python 依赖问题，检查 `requirements.txt`
 
-### 数据丢失
-- 这是预期行为，免费 PaaS 服务重启后数据重置
-- 如需持久化，需要接入 MongoDB Atlas 等云数据库
+### 前端无法连接 API
+- 确保使用的是相对路径 `/api/xxx`
+- 检查 CORS 配置
+
+---
+
+## 切换到独立后端（可选）
+
+如果 Vercel 的 10 秒超时不够用，可以：
+
+1. 后端部署到 Render/Railway
+2. 前端部署到 Vercel
+3. 修改 `frontend/.env.production` 中的 API 地址
+
+详见其他部署方案。
