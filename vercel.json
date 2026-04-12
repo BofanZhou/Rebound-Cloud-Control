@@ -24,6 +24,5 @@
       "destination": "/api/index.py"
     }
   ],
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "installCommand": "pip install --break-system-packages -r requirements.txt"
+  "buildCommand": "cd frontend && npm install && npm run build"
 }
