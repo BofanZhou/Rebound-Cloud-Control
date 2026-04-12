@@ -215,6 +215,15 @@ class AuthService:
         return token_data["role"] in required_roles
 
 
-# 全局认证服务实例 - 使用环境变量指定的数据目录
-_data_dir = os.environ.get('DATA_DIR', 'data')
-auth_service = AuthService(data_dir=_data_dir)
+# 全局认证服务实例 - 懒加载
+_auth_service_instance = None
+
+def get_auth_service():
+    global _auth_service_instance
+    if _auth_service_instance is None:
+        _data_dir = os.environ.get('DATA_DIR', 'data')
+        _auth_service_instance = AuthService(data_dir=_data_dir)
+    return _auth_service_instance
+
+# 保持兼容性：module-level access  
+auth_service = get_auth_service()

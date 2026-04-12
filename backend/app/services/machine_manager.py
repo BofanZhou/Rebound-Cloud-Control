@@ -182,6 +182,15 @@ class MachineManager:
                 break
 
 
-# 全局机器管理器实例 - 使用环境变量指定的数据目录
-_data_dir = os.environ.get('DATA_DIR', 'data/machines')
-machine_manager = MachineManager(data_dir=_data_dir)
+# 全局机器管理器实例 - 懒加载
+_machine_manager_instance = None
+
+def get_machine_manager():
+    global _machine_manager_instance
+    if _machine_manager_instance is None:
+        _data_dir = os.environ.get('DATA_DIR', 'data/machines')
+        _machine_manager_instance = MachineManager(data_dir=_data_dir)
+    return _machine_manager_instance
+
+# 保持兼容性：module-level access
+machine_manager = get_machine_manager()
