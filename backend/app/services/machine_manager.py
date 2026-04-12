@@ -182,5 +182,6 @@ class MachineManager:
                 break
 
 
-# 全局机器管理器实例
-machine_manager = MachineManager()
+# 全局机器管理器实例 - 使用环境变量指定的数据目录
+_data_dir = os.environ.get('DATA_DIR', 'data/machines')
+machine_manager = MachineManager(data_dir=_data_dir)
