@@ -51,28 +51,32 @@ class MachineManager:
     
     def _load_machines(self):
         """加载所有机器信息"""
-        if not os.path.exists(self.data_dir):
-            return
-        
-        for machine_id in os.listdir(self.data_dir):
-            machine_dir = self._get_machine_dir(machine_id)
-            machine_file = os.path.join(machine_dir, "machine.json")
+        try:
+            if not os.path.exists(self.data_dir):
+                os.makedirs(self.data_dir, exist_ok=True)
+                return
             
-            if os.path.exists(machine_file):
-                try:
-                    with open(machine_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        machine = Machine(**data)
-                        self._machines[machine_id] = machine
-                        
-                        # 为每台机器创建模拟器
-                        self._simulators[machine_id] = DeviceSimulator(machine_id)
-                        
-                        # 加载历史记录
-                        self._load_history(machine_id)
-                        
-                except Exception as e:
-                    print(f"加载机器 {machine_id} 失败: {e}")
+            for machine_id in os.listdir(self.data_dir):
+                machine_dir = self._get_machine_dir(machine_id)
+                machine_file = os.path.join(machine_dir, "machine.json")
+                
+                if os.path.exists(machine_file):
+                    try:
+                        with open(machine_file, 'r', encoding='utf-8') as f:
+                            data = json.load(f)
+                            machine = Machine(**data)
+                            self._machines[machine_id] = machine
+                            
+                            # 为每台机器创建模拟器
+                            self._simulators[machine_id] = DeviceSimulator(machine_id)
+                            
+                            # 加载历史记录
+                            self._load_history(machine_id)
+                            
+                    except Exception as e:
+                        print(f"加载机器 {machine_id} 失败: {e}")
+        except Exception as e:
+            print(f"加载机器列表失败: {e}")
     
     def _load_history(self, machine_id: str):
         """加载机器历史记录"""
@@ -90,22 +94,28 @@ class MachineManager:
     
     def _save_machine(self, machine: Machine):
         """保存机器信息到文件"""
-        machine_dir = self._get_machine_dir(machine.id)
-        os.makedirs(machine_dir, exist_ok=True)
-        
-        machine_file = self._get_machine_file(machine.id)
-        with open(machine_file, 'w', encoding='utf-8') as f:
-            json.dump(machine.model_dump(), f, ensure_ascii=False, indent=2)
+        try:
+            machine_dir = self._get_machine_dir(machine.id)
+            os.makedirs(machine_dir, exist_ok=True)
+            
+            machine_file = self._get_machine_file(machine.id)
+            with open(machine_file, 'w', encoding='utf-8') as f:
+                json.dump(machine.model_dump(), f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"保存机器信息失败: {e}")
     
     def _save_history(self, machine_id: str):
         """保存历史记录到文件"""
-        if machine_id not in self._history:
-            return
-        
-        history_file = self._get_history_file(machine_id)
-        with open(history_file, 'w', encoding='utf-8') as f:
-            data = [record.model_dump() for record in self._history[machine_id]]
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        try:
+            if machine_id not in self._history:
+                return
+            
+            history_file = self._get_history_file(machine_id)
+            with open(history_file, 'w', encoding='utf-8') as f:
+                data = [record.model_dump() for record in self._history[machine_id]]
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"保存历史记录失败: {e}")
     
     def _create_default_machine(self):
         """创建默认机器"""

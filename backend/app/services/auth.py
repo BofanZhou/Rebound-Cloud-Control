@@ -46,21 +46,24 @@ class AuthService:
     
     def _load_users(self):
         """加载用户数据"""
-        if os.path.exists(self.users_file):
-            try:
+        try:
+            if os.path.exists(self.users_file):
                 with open(self.users_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     for user_data in data:
                         user = User(**user_data)
                         self._users[user.username] = user
-            except Exception as e:
-                print(f"加载用户数据失败: {e}")
+        except Exception as e:
+            print(f"加载用户数据失败: {e}")
     
     def _save_users(self):
         """保存用户数据"""
-        with open(self.users_file, 'w', encoding='utf-8') as f:
-            data = [user.model_dump() for user in self._users.values()]
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        try:
+            with open(self.users_file, 'w', encoding='utf-8') as f:
+                data = [user.model_dump() for user in self._users.values()]
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"保存用户数据失败: {e}")
     
     def _create_default_users(self):
         """创建默认用户"""
