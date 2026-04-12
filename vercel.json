@@ -2,11 +2,6 @@
   "version": 2,
   "outputDirectory": "frontend/dist",
   "framework": "vite",
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/api",
