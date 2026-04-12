@@ -20,7 +20,13 @@
 
     <!-- 错误提示 -->
     <div v-else-if="error" class="error-state">
-      <span class="error-icon">⚠</span>
+      <span class="error-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v5"/>
+          <path d="M12 16h.01"/>
+        </svg>
+      </span>
       <span>{{ error }}</span>
       <button @click="fetchMachines">重试</button>
     </div>
@@ -44,7 +50,12 @@
           <h3 class="machine-name">{{ machine.name }}</h3>
           <p class="machine-id">{{ machine.id }}</p>
           <p class="machine-location">
-            <span class="location-icon">📍</span>
+            <span class="location-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/>
+                <circle cx="12" cy="10" r="2.5"/>
+              </svg>
+            </span>
             {{ machine.location }}
           </p>
         </div>
@@ -59,7 +70,12 @@
         <!-- 操作提示 -->
         <div class="machine-action">
           <span>点击进入管理</span>
-          <span class="action-arrow">→</span>
+          <span class="action-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"/>
+              <path d="M13 6l6 6-6 6"/>
+            </svg>
+          </span>
         </div>
       </div>
 
@@ -300,7 +316,7 @@ onMounted(() => {
   padding: 6px 12px;
   background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 10px;
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
@@ -311,6 +327,7 @@ onMounted(() => {
 .logout-btn:hover {
   border-color: var(--industrial-red);
   color: var(--industrial-red);
+  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.14);
 }
 
 /* Loading & Error States */
@@ -339,8 +356,14 @@ onMounted(() => {
 }
 
 .error-state .error-icon {
-  font-size: 48px;
+  width: 48px;
+  height: 48px;
   color: var(--industrial-red);
+}
+
+.error-state .error-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .error-state button {
@@ -368,10 +391,10 @@ onMounted(() => {
 .machine-card {
   background: var(--industrial-bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 18px;
   padding: 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.28s ease;
   position: relative;
   overflow: hidden;
 }
@@ -400,8 +423,8 @@ onMounted(() => {
 
 .machine-card:hover {
   border-color: var(--border-bright);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.14);
+  transform: translateY(-4px);
 }
 
 .machine-card.online:hover {
@@ -488,7 +511,16 @@ onMounted(() => {
 }
 
 .location-icon {
-  font-size: 12px;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-icon svg {
+  width: 14px;
+  height: 14px;
 }
 
 .machine-meta {
@@ -517,8 +549,17 @@ onMounted(() => {
 }
 
 .action-arrow {
-  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.3s ease;
+}
+
+.action-arrow svg {
+  width: 16px;
+  height: 16px;
 }
 
 .machine-card:hover .action-arrow {
@@ -589,7 +630,7 @@ onMounted(() => {
 .modal-content {
   background: var(--industrial-bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 32px;
   width: 100%;
   max-width: 400px;
@@ -643,7 +684,7 @@ onMounted(() => {
 .modal-actions button {
   flex: 1;
   padding: 12px 24px;
-  border-radius: 6px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -659,17 +700,34 @@ onMounted(() => {
 .btn-cancel:hover {
   border-color: var(--border-bright);
   color: var(--text-primary);
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
-  border: 1px solid var(--industrial-yellow);
-  color: #000;
+  background: linear-gradient(135deg, var(--industrial-blue) 0%, #0284c7 100%);
+  border: 1px solid var(--industrial-blue);
+  color: #fff;
   font-weight: 600;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-confirm:hover:not(:disabled) {
-  box-shadow: 0 0 20px var(--industrial-yellow-glow);
+  box-shadow: 0 14px 28px rgba(14, 165, 233, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-confirm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.34) 50%, transparent 100%);
+  transform: translateX(-125%);
+  transition: transform 0.45s ease;
+}
+
+.btn-confirm:hover::before {
+  transform: translateX(125%);
 }
 
 .btn-confirm:disabled {

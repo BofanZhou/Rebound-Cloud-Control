@@ -1,49 +1,48 @@
-import sys
 import os
+import sys
+import traceback
+from pathlib import Path
 
-# 设置环境变量
-os.environ['VERCEL'] = '1'
-os.environ['DATA_DIR'] = '/tmp/data'
+BASE_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = BASE_DIR.parent / 'backend'
 
-# 确保数据目录存在
-try:
-    os.makedirs('/tmp/data', exist_ok=True)
-    os.makedirs('/tmp/data/machines', exist_ok=True)
-except Exception as e:
-    print(f"Warning: Could not create data directories: {e}")
+os.environ.setdefault('VERCEL', '1')
+os.environ.setdefault('USER_DATA_DIR', '/tmp/data')
+os.environ.setdefault('MACHINE_DATA_DIR', '/tmp/data/machines')
 
-# 添加 backend 到路径
-backend_path = os.path.join(os.path.dirname(__file__), '..', 'backend')
-sys.path.insert(0, backend_path)
+# Backward-compatible fallback for existing services.
+os.environ.setdefault('DATA_DIR', os.environ['USER_DATA_DIR'])
 
-# 添加当前目录到路径（用于导入 app）
-current_dir = os.path.dirname(__file__)
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
+for path in (Path(os.environ['USER_DATA_DIR']), Path(os.environ['MACHINE_DATA_DIR'])):
+    path.mkdir(parents=True, exist_ok=True)
 
-# 延迟导入 main，确保路径设置完成
+sys.path.insert(0, str(BACKEND_DIR))
+
 try:
     from main import app
     from mangum import Mangum
-    handler = Mangum(app, lifespan="off")
-except Exception as e:
-    import traceback
-    error_msg = f"Failed to initialize app: {str(e)}\n{traceback.format_exc()}"
-    print(error_msg)
-    
-    # 创建一个简单的错误处理应用
+
+    handler = Mangum(app, lifespan='off')
+except Exception as exc:
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
-    
+    from mangum import Mangum
+
+    print(f'Failed to initialize app: {exc}')
+    print(traceback.format_exc())
+
     app = FastAPI()
-    
-    @app.get("/")
-    @app.get("/api/{path:path}")
-    async def error_handler(path: str = ""):
+
+    @app.get('/')
+    @app.get('/api/{path:path}')
+    async def error_handler(path: str = ''):
         return JSONResponse(
             status_code=500,
-            content={"code": 500, "message": f"Server initialization error: {str(e)}", "data": None}
+            content={
+                'code': 500,
+                'message': f'Server initialization error: {exc}',
+                'data': {},
+            },
         )
-    
-    from mangum import Mangum
-    handler = Mangum(app, lifespan="off")
+
+    handler = Mangum(app, lifespan='off')

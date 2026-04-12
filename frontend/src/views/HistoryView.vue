@@ -882,4 +882,35 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+/* Deep polish */
+.table-container,
+.modal {
+  border-radius: 16px;
+}
+
+.toolbar button,
+.btn-detail,
+.close-btn {
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  transform: translateX(-125%);
+  transition: transform 0.45s ease;
+}
+
+.toolbar button:hover::before {
+  transform: translateX(125%);
+}
+
+.status-badge .status-dot {
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.45);
+}
 </style>

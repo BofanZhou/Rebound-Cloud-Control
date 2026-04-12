@@ -1,42 +1,67 @@
 """
-钢管回弹智能补偿系统 - 后端服务
-FastAPI 主入口
-
-启动命令：
-    uvicorn main:app --reload --port 8000
-
-或：
-    python main.py
+Steel pipe springback compensation system backend service.
 """
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.routers import (
-    recommend_router, 
-    device_router, 
+    recommend_router,
+    device_router,
     history_router,
     auth_router,
     machines_router,
 )
 
-# 创建 FastAPI 应用实例
+APP_VERSION = "0.2.1"
+APP_NAME = "Steel Pipe Springback Compensation API"
+
 app = FastAPI(
-    title="钢管回弹智能补偿系统 API",
-    description="多机管理版本 - 支持机器登录和用户登录",
-    version="0.2.0",
+    title=APP_NAME,
+    description="Prototype with multi-machine management and authentication",
+    version=APP_VERSION,
 )
 
-# 配置 CORS（允许前端跨域访问）
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发环境允许所有来源
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 注册路由
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_request: Request, exc: HTTPException):
+    message = exc.detail if isinstance(exc.detail, str) else "request failed"
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"code": exc.status_code, "message": message, "data": {}},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "code": 422,
+            "message": "validation failed",
+            "data": {"errors": exc.errors()},
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(_request: Request, _exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"code": 500, "message": "internal server error", "data": {}},
+    )
+
+
 app.include_router(recommend_router, prefix="/api")
 app.include_router(device_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
@@ -46,29 +71,28 @@ app.include_router(machines_router, prefix="/api")
 
 @app.get("/")
 async def root():
-    """根路径，返回服务信息"""
     return {
-        "name": "钢管回弹智能补偿系统 API",
-        "version": "0.2.0",
-        "status": "running",
-        "docs": "/docs",
-        "features": [
-            "多机管理",
-            "用户认证",
-            "机器登录",
-            "维修/管理模式",
-        ]
+        "code": 0,
+        "message": "success",
+        "data": {
+            "name": APP_NAME,
+            "version": APP_VERSION,
+            "status": "running",
+            "docs": "/docs",
+        },
     }
 
 
 @app.get("/health")
 async def health_check():
-    """健康检查接口"""
-    return {"status": "healthy"}
+    return {
+        "code": 0,
+        "message": "success",
+        "data": {"status": "healthy"},
+    }
 
 
 if __name__ == "__main__":
-    # 直接运行此文件启动服务
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

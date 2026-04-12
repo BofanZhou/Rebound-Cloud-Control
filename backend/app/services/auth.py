@@ -224,7 +224,7 @@ _auth_service_instance = None
 def get_auth_service():
     global _auth_service_instance
     if _auth_service_instance is None:
-        _data_dir = os.environ.get('DATA_DIR', 'data')
+        _data_dir = os.environ.get('USER_DATA_DIR', os.environ.get('DATA_DIR', 'data'))
         _auth_service_instance = AuthService(data_dir=_data_dir)
     return _auth_service_instance
 

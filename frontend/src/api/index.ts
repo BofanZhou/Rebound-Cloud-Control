@@ -1,4 +1,3 @@
-// API 接口封装
 import type {
   ApiResponse,
   RecommendParams,
@@ -14,51 +13,85 @@ import type {
   UserInfo,
 } from '../types'
 
-// API 基础地址
-// Vercel 部署时前后端同域名，使用相对路径
-const API_BASE = '/api'
+const API_BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
+const REQUEST_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS || 12000)
 
-// 获取token
 function getToken(): string | null {
   return localStorage.getItem('token')
 }
 
-// 通用请求封装
+function logoutAndRedirectToLogin() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  localStorage.removeItem('role')
+  localStorage.removeItem('machine_id')
+  localStorage.removeItem('machine_name')
+  localStorage.removeItem('current_machine')
+
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+async function parseErrorMessage(response: Response): Promise<string> {
+  try {
+    const payload = await response.json()
+
+    if (payload?.message && typeof payload.message === 'string') {
+      return payload.message
+    }
+
+    if (payload?.detail) {
+      return typeof payload.detail === 'string' ? payload.detail : JSON.stringify(payload.detail)
+    }
+  } catch {
+    // ignore and fallback to status text
+  }
+
+  return `Request failed (${response.status})`
+}
+
 async function request<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  
-  // 添加认证头
+
   const token = getToken()
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+    headers.Authorization = `Bearer ${token}`
   }
-  
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers,
-    ...options,
-  })
-  
-  if (!response.ok) {
-    if (response.status === 401) {
-      // 未授权，清除token并跳转登录
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-      throw new Error('未登录或登录已过期')
+
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      headers,
+      ...options,
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        logoutAndRedirectToLogin()
+        throw new Error('Unauthorized or session expired')
+      }
+
+      throw new Error(await parseErrorMessage(response))
     }
-    throw new Error(`HTTP error! status: ${response.status}`)
+
+    return response.json()
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`Request timeout (>${REQUEST_TIMEOUT_MS}ms)`)
+    }
+
+    throw error
+  } finally {
+    clearTimeout(timeout)
   }
-  
-  return response.json()
 }
 
-// ==================== 认证相关 API ====================
-
-/**
- * 登录
- * @param request 登录请求
- */
 export async function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/auth/login', {
     method: 'POST',
@@ -66,30 +99,18 @@ export async function login(data: LoginRequest): Promise<ApiResponse<LoginRespon
   })
 }
 
-/**
- * 获取当前用户信息
- */
 export async function getMe(): Promise<ApiResponse<any>> {
   return request('/auth/me', {
     method: 'GET',
   })
 }
 
-/**
- * 获取用户列表（仅管理员）
- */
 export async function getUsers(): Promise<ApiResponse<UserInfo[]>> {
   return request('/auth/users', {
     method: 'GET',
   })
 }
 
-// ==================== 机器管理 API ====================
-
-/**
- * 获取机器列表
- * @param status 状态筛选（可选）
- */
 export async function getMachines(status?: string): Promise<ApiResponse<Machine[]>> {
   let url = '/machines'
   if (status) {
@@ -100,10 +121,6 @@ export async function getMachines(status?: string): Promise<ApiResponse<Machine[
   })
 }
 
-/**
- * 创建机器（仅管理员）
- * @param request 创建请求
- */
 export async function createMachine(data: MachineCreateRequest): Promise<ApiResponse<Machine>> {
   return request<Machine>('/machines', {
     method: 'POST',
@@ -111,22 +128,12 @@ export async function createMachine(data: MachineCreateRequest): Promise<ApiResp
   })
 }
 
-/**
- * 选择机器
- * @param machineId 机器ID
- */
 export async function selectMachine(machineId: string): Promise<ApiResponse<{ token: string; machine: Machine }>> {
   return request(`/machines/${machineId}/select`, {
     method: 'POST',
   })
 }
 
-// ==================== 推荐参数 API ====================
-
-/**
- * 获取推荐参数
- * @param params 输入参数
- */
 export async function getRecommend(params: RecommendParams): Promise<ApiResponse<RecommendResult>> {
   return request<RecommendResult>('/recommend', {
     method: 'POST',
@@ -134,12 +141,6 @@ export async function getRecommend(params: RecommendParams): Promise<ApiResponse
   })
 }
 
-// ==================== 设备状态 API ====================
-
-/**
- * 获取设备当前状态
- * @param machineId 机器ID（可选）
- */
 export async function getDeviceStatus(machineId?: string): Promise<ApiResponse<DeviceState>> {
   let url = '/device/status'
   if (machineId) {
@@ -150,11 +151,6 @@ export async function getDeviceStatus(machineId?: string): Promise<ApiResponse<D
   })
 }
 
-/**
- * 提交任务到设备
- * @param params 任务参数
- * @param machineId 机器ID（可选）
- */
 export async function submitTask(params: TaskSubmitParams, machineId?: string): Promise<ApiResponse<TaskSubmitResult>> {
   let url = '/device/submit'
   if (machineId) {
@@ -166,13 +162,6 @@ export async function submitTask(params: TaskSubmitParams, machineId?: string): 
   })
 }
 
-// ==================== 历史记录 API ====================
-
-/**
- * 获取历史记录列表
- * @param limit 限制数量
- * @param machineId 机器ID（可选）
- */
 export async function getHistory(limit: number = 10, machineId?: string): Promise<ApiResponse<HistoryRecord[]>> {
   let url = `/history?limit=${limit}`
   if (machineId) {

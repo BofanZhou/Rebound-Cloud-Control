@@ -18,14 +18,24 @@
           :class="['tab-btn', { active: loginType === 'machine' }]"
           @click="loginType = 'machine'"
         >
-          <span class="tab-icon">🔧</span>
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <path d="M9 9h6v6H9z"/>
+            </svg>
+          </span>
           <span>机器登录</span>
         </button>
         <button 
           :class="['tab-btn', { active: loginType === 'user' }]"
           @click="loginType = 'user'"
         >
-          <span class="tab-icon">👤</span>
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/>
+            </svg>
+          </span>
           <span>用户登录</span>
         </button>
       </div>
@@ -52,7 +62,13 @@
             />
           </div>
           <div class="form-hint">
-            <span class="hint-icon">💡</span>
+            <span class="hint-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4"/>
+                <path d="M12 16h.01"/>
+              </svg>
+            </span>
             <span>机器登录后直接进入该机器的操作界面</span>
           </div>
         </template>
@@ -95,7 +111,13 @@
 
         <!-- 错误提示 -->
         <div v-if="error" class="error-message">
-          <span class="error-icon">⚠</span>
+          <span class="error-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v5"/>
+              <path d="M12 16h.01"/>
+            </svg>
+          </span>
           {{ error }}
         </div>
 
@@ -222,11 +244,11 @@ function fillDemo(type: string) {
   max-width: 420px;
   background: var(--industrial-bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 20px;
   padding: 40px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+  box-shadow:
+    0 24px 56px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.7);
   position: relative;
   overflow: hidden;
 }
@@ -307,7 +329,7 @@ function fillDemo(type: string) {
   padding: 12px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 10px;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
@@ -320,13 +342,23 @@ function fillDemo(type: string) {
 }
 
 .tab-btn.active {
-  background: var(--metal-dark);
-  border-color: var(--industrial-yellow);
-  color: var(--industrial-yellow);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(14, 165, 233, 0.08));
+  border-color: var(--industrial-blue);
+  color: #075985;
+  box-shadow: 0 8px 22px rgba(14, 165, 233, 0.2);
 }
 
 .tab-icon {
-  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Form */
@@ -384,7 +416,16 @@ function fillDemo(type: string) {
 }
 
 .hint-icon {
-  font-size: 14px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .role-hints {
@@ -444,7 +485,16 @@ function fillDemo(type: string) {
 }
 
 .error-icon {
-  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .login-btn {
@@ -452,12 +502,14 @@ function fillDemo(type: string) {
   padding: 14px 24px;
   background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
   border: 1px solid var(--industrial-yellow);
-  border-radius: 6px;
-  color: #000;
+  border-radius: 12px;
+  color: #fff;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.28s ease;
+  position: relative;
+  overflow: hidden;
   text-transform: uppercase;
   letter-spacing: 1px;
   display: flex;
@@ -467,9 +519,21 @@ function fillDemo(type: string) {
 }
 
 .login-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #ffb84d 0%, var(--industrial-yellow) 100%);
-  box-shadow: 0 0 20px var(--industrial-yellow-glow);
-  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(14, 165, 233, 0.35);
+  transform: translateY(-2px);
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.32) 48%, transparent 100%);
+  transform: translateX(-130%);
+  transition: transform 0.45s ease;
+}
+
+.login-btn:hover::before {
+  transform: translateX(130%);
 }
 
 .login-btn:disabled {

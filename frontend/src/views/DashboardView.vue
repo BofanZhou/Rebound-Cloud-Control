@@ -643,4 +643,46 @@ async function handleSubmit() {
     grid-template-columns: 1fr;
   }
 }
+
+/* Deep polish */
+.dashboard .card {
+  border-radius: 18px;
+}
+
+.label-icon,
+.box-icon,
+.panel-icon,
+.warning-icon,
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.form-actions button,
+.btn-submit {
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-actions button::before,
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+  transform: translateX(-125%);
+  transition: transform 0.45s ease;
+}
+
+.form-actions button:hover::before,
+.btn-submit:hover::before {
+  transform: translateX(125%);
+}
+
+.result-highlight {
+  box-shadow: 0 16px 30px rgba(14, 165, 233, 0.16);
+}
 </style>

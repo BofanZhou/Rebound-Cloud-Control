@@ -198,7 +198,7 @@ _machine_manager_instance = None
 def get_machine_manager():
     global _machine_manager_instance
     if _machine_manager_instance is None:
-        _data_dir = os.environ.get('DATA_DIR', 'data/machines')
+        _data_dir = os.environ.get('MACHINE_DATA_DIR', os.environ.get('DATA_DIR', 'data/machines'))
         _machine_manager_instance = MachineManager(data_dir=_data_dir)
     return _machine_manager_instance
 

@@ -112,3 +112,16 @@ https://rebound-cloud-control-xxxx.vercel.app
 3. 修改 `frontend/.env.production` 中的 API 地址
 
 详见其他部署方案。
+
+---
+
+## 2026-04 Stability Notes
+
+- `vercel.json` now includes a dedicated rewrite for `/api` (without trailing path) and keeps API function `maxDuration` at `10` seconds to match Vercel serverless limits.
+- API error responses are normalized to `{ code, message, data }` for both HTTP and validation errors.
+- Data directories are split on Vercel:
+  - `USER_DATA_DIR=/tmp/data`
+  - `MACHINE_DATA_DIR=/tmp/data/machines`
+- Frontend supports optional environment variables:
+  - `VITE_API_BASE` (default: `/api`)
+  - `VITE_API_TIMEOUT_MS` (default: `12000`)

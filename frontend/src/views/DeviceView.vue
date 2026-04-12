@@ -998,4 +998,40 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+/* Deep polish */
+.device .card {
+  border-radius: 18px;
+}
+
+.control-btn {
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, transparent 0%, rgba(255,255,255,0.24) 50%, transparent 100%);
+  transform: translateX(-125%);
+  transition: transform 0.45s ease;
+}
+
+.control-btn:hover:not(:disabled)::before {
+  transform: translateX(125%);
+}
+
+.btn-icon svg,
+.title-icon svg,
+.node-core svg,
+.status-icon svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.indicator-ring {
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.42), 0 10px 28px rgba(15, 23, 42, 0.12);
+}
 </style>

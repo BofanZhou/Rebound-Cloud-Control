@@ -2,7 +2,7 @@
 Pydantic 数据模型定义
 定义所有 API 的请求/响应数据结构
 """
-from typing import Optional, Literal
+from typing import Any, Optional, Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
 
@@ -13,7 +13,7 @@ class ApiResponse(BaseModel):
     """通用 API 响应格式"""
     code: int = Field(0, description="响应码，0 表示成功")
     message: str = Field("success", description="响应消息")
-    data: Optional[dict] = Field(None, description="响应数据")
+    data: Optional[Any] = Field(None, description="响应数据")
 
 
 # ==================== 用户认证相关 ====================
