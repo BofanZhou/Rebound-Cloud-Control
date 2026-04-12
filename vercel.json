@@ -1,19 +1,5 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -38,8 +24,5 @@
       "src": "/(.*)",
       "dest": "/frontend/dist/$1"
     }
-  ],
-  "env": {
-    "PYTHONPATH": "backend"
-  }
+  ]
 }
