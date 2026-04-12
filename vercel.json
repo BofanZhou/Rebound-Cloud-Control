@@ -10,6 +10,10 @@
       "dest": "/api/index.py"
     },
     {
+      "src": "/docs/(.*)",
+      "dest": "/api/index.py"
+    },
+    {
       "src": "/openapi.json",
       "dest": "/api/index.py"
     },
@@ -18,11 +22,16 @@
       "dest": "/api/index.py"
     },
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "/frontend/dist/assets/$1"
+    },
+    {
+      "src": "/vite.svg",
+      "dest": "/frontend/dist/vite.svg"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
+      "dest": "/frontend/dist/index.html"
     }
   ]
 }
