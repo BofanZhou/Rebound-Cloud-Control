@@ -3,6 +3,8 @@
 输出: 0=角度偏小(欠弯), 1=角度合适, 2=角度偏大(过弯)
 迭代推理: 当输出为0或2时，调整角度后重新预测直到输出1
 """
+from __future__ import annotations
+
 import os
 import json
 import csv
@@ -12,11 +14,23 @@ import threading
 from datetime import datetime, timezone
 from typing import Optional
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-import numpy as np
+try:
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torch.utils.data import DataLoader, TensorDataset
+    import numpy as np
+    ML_AVAILABLE = True
+except ImportError:
+    torch = None
+    nn = None
+    optim = None
+    DataLoader = None
+    TensorDataset = None
+    np = None
+    ML_AVAILABLE = False
+
+ML_UNAVAILABLE_MESSAGE = "当前部署未安装机器学习依赖，训练和预测功能不可用"
 
 MATERIALS = ["普通钢", "高强钢", "不锈钢", "铝合金"]
 MATERIAL_TO_IDX = {m: i for i, m in enumerate(MATERIALS)}
@@ -30,28 +44,35 @@ RESULT_LABELS = {0: "角度偏小", 1: "角度合适", 2: "角度偏大"}
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "springback_model.pt")
 
 
-class SpringbackNet(nn.Module):
-    """回弹分类全连接网络"""
+if ML_AVAILABLE:
+    class SpringbackNet(nn.Module):
+        """回弹分类全连接网络"""
 
-    def __init__(self, input_dim: int = INPUT_DIM, hidden_dims: list = None, num_classes: int = 3):
-        super().__init__()
-        if hidden_dims is None:
-            hidden_dims = [64, 32, 16]
+        def __init__(self, input_dim: int = INPUT_DIM, hidden_dims: list = None, num_classes: int = 3):
+            super().__init__()
+            if hidden_dims is None:
+                hidden_dims = [64, 32, 16]
 
-        layers = []
-        prev_dim = input_dim
-        for hd in hidden_dims:
-            layers.append(nn.Linear(prev_dim, hd))
-            layers.append(nn.LayerNorm(hd))
-            layers.append(nn.ReLU())
-            layers.append(nn.Dropout(0.2))
-            prev_dim = hd
-        layers.append(nn.Linear(prev_dim, num_classes))
+            layers = []
+            prev_dim = input_dim
+            for hd in hidden_dims:
+                layers.append(nn.Linear(prev_dim, hd))
+                layers.append(nn.LayerNorm(hd))
+                layers.append(nn.ReLU())
+                layers.append(nn.Dropout(0.2))
+                prev_dim = hd
+            layers.append(nn.Linear(prev_dim, num_classes))
 
-        self.net = nn.Sequential(*layers)
+            self.net = nn.Sequential(*layers)
 
-    def forward(self, x):
-        return self.net(x)
+        def forward(self, x):
+            return self.net(x)
+else:
+    class SpringbackNet:
+        """占位模型，避免轻量部署缺少 torch 时影响其它接口启动。"""
+
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(ML_UNAVAILABLE_MESSAGE)
 
 
 def encode_input(material: str, diameter: float, thickness: float, target_angle: float) -> np.ndarray:
@@ -142,6 +163,7 @@ class TrainingState:
     def to_dict(self) -> dict:
         with self._lock:
             return {
+                "ml_available": ML_AVAILABLE,
                 "is_training": self.is_training,
                 "current_epoch": self.current_epoch,
                 "total_epochs": self.total_epochs,
@@ -152,16 +174,19 @@ class TrainingState:
                 "message": self.message,
                 "error": self.error,
                 "dataset_size": self.dataset_size,
-                "model_exists": self.model is not None,
+                "model_exists": ML_AVAILABLE and self.model is not None,
             }
 
     def save_model(self):
-        if self.model is None:
+        if not ML_AVAILABLE or self.model is None:
             return
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         torch.save(self.model.state_dict(), MODEL_PATH)
 
     def load_model(self) -> bool:
+        if not ML_AVAILABLE:
+            self.message = ML_UNAVAILABLE_MESSAGE
+            return False
         if not os.path.exists(MODEL_PATH):
             return False
         try:
@@ -183,6 +208,11 @@ def run_training(records: list[dict], epochs: int = 80, batch_size: int = 32, lr
     state = training_state
     state.reset()
     state.dataset_size = len(records)
+
+    if not ML_AVAILABLE:
+        with state._lock:
+            state.error = ML_UNAVAILABLE_MESSAGE
+        return
 
     if len(records) < 10:
         with state._lock:
@@ -271,6 +301,10 @@ def run_training(records: list[dict], epochs: int = 80, batch_size: int = 32, lr
 
 def start_training(records: list[dict], epochs: int = 80, batch_size: int = 32, lr: float = 0.001):
     """启动训练线程"""
+    if not ML_AVAILABLE:
+        with training_state._lock:
+            training_state.error = ML_UNAVAILABLE_MESSAGE
+        return False
     if training_state.is_training:
         return False
     thread = threading.Thread(target=run_training, args=(records, epochs, batch_size, lr))
@@ -282,6 +316,8 @@ def start_training(records: list[dict], epochs: int = 80, batch_size: int = 32, 
 def predict_one(material: str, diameter: float, thickness: float, target_angle: float) -> dict:
     """单次预测"""
     state = training_state
+    if not ML_AVAILABLE:
+        return {"class": -1, "label": ML_UNAVAILABLE_MESSAGE, "probabilities": []}
     if state.model is None:
         return {"class": -1, "label": "模型未加载", "probabilities": []}
 
@@ -299,6 +335,8 @@ def predict_iterative(material: str, diameter: float, thickness: float, target_a
                       max_iterations: int = 20, step: float = 0.5) -> dict:
     """迭代预测 —— 当结果为0或2时自动调整角度，直到输出1"""
     state = training_state
+    if not ML_AVAILABLE:
+        return {"success": False, "error": ML_UNAVAILABLE_MESSAGE, "final_angle": None, "steps": []}
     if state.model is None:
         return {"success": False, "error": "模型未训练，请先导入数据集并训练", "final_angle": None, "steps": []}
 
