@@ -2,6 +2,7 @@
 frontend/node_modules/
 backend/node_modules/
 backend/venv313/
+backend/.venv_local/
 backend/Lib/
 backend/Scripts/
 backend/pyvenv.cfg

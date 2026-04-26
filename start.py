@@ -23,6 +23,7 @@ COLORS = {
 
 procs = []
 shutdown_event = threading.Event()
+LOCAL_VENV_DIRNAME = ".venv_local"
 
 
 def log(label: str, text: str, level: str = "info"):
@@ -49,22 +50,119 @@ def check_command(cmd):
     return shutil.which(cmd) is not None
 
 
-def find_python():
-    """查找可用的 Python 解释器，优先虚拟环境"""
-    backend_dir = Path(__file__).parent / "backend"
-    venv_paths = [
-        backend_dir / "venv313" / "Scripts" / "python.exe",
-        backend_dir / "venv" / "Scripts" / "python.exe",
-        Path(__file__).parent / "venv313" / "Scripts" / "python.exe",
-        Path(__file__).parent / "venv" / "Scripts" / "python.exe",
-    ]
-    for vp in venv_paths:
-        if vp.exists():
-            return str(vp)
+def read_pyvenv_cfg(cfg_path: Path) -> dict[str, str]:
+    data: dict[str, str] = {}
+    try:
+        for line in cfg_path.read_text(encoding="utf-8").splitlines():
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            data[key.strip().lower()] = value.strip()
+    except Exception:
+        return {}
+    return data
+
+
+def get_venv_python(venv_dir: Path) -> Path:
+    if sys.platform == "win32":
+        return venv_dir / "Scripts" / "python.exe"
+    return venv_dir / "bin" / "python"
+
+
+def is_venv_python_usable(python_path: Path) -> tuple[bool, str]:
+    if not python_path.exists():
+        return False, "python executable not found"
+
+    cfg_path = python_path.parent.parent / "pyvenv.cfg"
+    if not cfg_path.exists():
+        return False, "pyvenv.cfg is missing"
+
+    cfg = read_pyvenv_cfg(cfg_path)
+    base_executable = cfg.get("executable")
+    base_home = cfg.get("home")
+
+    if base_executable and not Path(base_executable).exists():
+        return False, f"base interpreter is missing: {base_executable}"
+
+    if sys.platform == "win32" and base_home and not Path(base_home).exists():
+        return False, f"base interpreter home is missing: {base_home}"
+
+    try:
+        subprocess.run(
+            [str(python_path), "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=True,
+        )
+    except Exception as exc:
+        return False, str(exc)
+
+    return True, ""
+
+
+def find_system_python():
     for cmd in ("python", "python3", "py"):
         if check_command(cmd):
             return cmd
     return None
+
+
+def ensure_local_backend_venv(system_python: str, backend_dir: Path) -> str | None:
+    venv_dir = backend_dir / LOCAL_VENV_DIRNAME
+    venv_python = get_venv_python(venv_dir)
+
+    ok, _ = is_venv_python_usable(venv_python)
+    if ok:
+        return str(venv_python)
+
+    log("启动器", f"正在创建本机后端虚拟环境: {venv_dir}", "warn")
+    create_cmd = [system_python, "-m", "venv", str(venv_dir)]
+    if venv_dir.exists():
+        create_cmd.insert(3, "--clear")
+
+    ret = run_and_stream(create_cmd, "venv", "info", cwd=backend_dir)
+    if ret != 0:
+        log("启动器", "创建虚拟环境失败，请检查本机 Python 安装是否完整", "error")
+        return None
+
+    ok, reason = is_venv_python_usable(venv_python)
+    if not ok:
+        log("启动器", f"新建虚拟环境不可用: {reason}", "error")
+        return None
+
+    return str(venv_python)
+
+
+def find_python():
+    """查找可用的 Python 解释器，优先本机可用虚拟环境"""
+    root_dir = Path(__file__).parent
+    backend_dir = root_dir / "backend"
+    venv_paths = [
+        backend_dir / LOCAL_VENV_DIRNAME,
+        backend_dir / "venv",
+        backend_dir / "venv313",
+        root_dir / LOCAL_VENV_DIRNAME,
+        root_dir / "venv",
+        root_dir / "venv313",
+    ]
+
+    for venv_dir in venv_paths:
+        python_path = get_venv_python(venv_dir)
+        ok, reason = is_venv_python_usable(python_path)
+        if ok:
+            return str(python_path)
+        if python_path.exists():
+            log("启动器", f"跳过不可移植虚拟环境 {python_path}: {reason}", "warn")
+
+    system_python = find_system_python()
+    if not system_python:
+        return None
+
+    local_venv_python = ensure_local_backend_venv(system_python, backend_dir)
+    if local_venv_python:
+        return local_venv_python
+
+    return system_python
 
 
 def run_and_stream(cmd, label, color_key, cwd=None):

@@ -1,6 +1,8 @@
 """
 Steel pipe springback compensation system backend service.
 """
+import os
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -114,10 +116,13 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
+    # Hot reload is useful for manual development, but the launcher should
+    # default to a single stable process on new deployment machines.
+    reload_enabled = os.environ.get("REBOUND_RELOAD", "0") == "1"
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,
+        reload=reload_enabled,
         log_level="info",
     )

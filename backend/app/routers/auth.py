@@ -101,7 +101,12 @@ async def login(request: LoginRequest, http_request: Request):
                 message="success",
                 data={
                     "token": token,
-                    "user": auth_service.get_user_info(request.username).model_dump(),
+                    "user": UserInfo(
+                        id=user.id,
+                        username=user.username,
+                        role=user.role,
+                        name=user.name,
+                    ).model_dump(),
                     "role": user.role,
                 }
             )

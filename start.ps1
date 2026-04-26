@@ -4,10 +4,83 @@
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BackendDir = Join-Path $RootDir "backend"
 $FrontendDir = Join-Path $RootDir "frontend"
+$LocalVenvDir = Join-Path $BackendDir ".venv_local"
 
 function Write-Log($Label, $Message, $Color = "White") {
     $Time = Get-Date -Format "HH:mm:ss"
     Write-Host "[$Time] [$Label] $Message" -ForegroundColor $Color
+}
+
+function Test-VenvPython($PythonPath) {
+    if (-not (Test-Path $PythonPath)) {
+        return $false
+    }
+
+    $VenvDir = Split-Path -Parent (Split-Path -Parent $PythonPath)
+    $CfgPath = Join-Path $VenvDir "pyvenv.cfg"
+    if (-not (Test-Path $CfgPath)) {
+        return $false
+    }
+
+    $Cfg = @{}
+    Get-Content $CfgPath | ForEach-Object {
+        if ($_ -match "=") {
+            $parts = $_ -split "=", 2
+            $Cfg[$parts[0].Trim().ToLower()] = $parts[1].Trim()
+        }
+    }
+
+    if ($Cfg.ContainsKey("executable") -and -not (Test-Path $Cfg["executable"])) {
+        Write-Log "启动器" "跳过不可移植虚拟环境: $PythonPath" "Yellow"
+        return $false
+    }
+
+    if ($Cfg.ContainsKey("home") -and -not (Test-Path $Cfg["home"])) {
+        Write-Log "启动器" "跳过不可移植虚拟环境: $PythonPath" "Yellow"
+        return $false
+    }
+
+    try {
+        & $PythonPath --version *> $null
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        Write-Log "启动器" "虚拟环境无法运行: $PythonPath" "Yellow"
+        return $false
+    }
+}
+
+function Test-BackendDependencies($PythonExe) {
+    try {
+        & $PythonExe -c "import fastapi, uvicorn, sqlalchemy" *> $null
+        return ($LASTEXITCODE -eq 0)
+    } catch {
+        return $false
+    }
+}
+
+function Ensure-LocalBackendVenv($PythonCmd) {
+    $LocalPython = Join-Path $LocalVenvDir "Scripts\python.exe"
+    if (Test-VenvPython $LocalPython) {
+        return $LocalPython
+    }
+
+    Write-Log "启动器" "正在创建本机后端虚拟环境..." "Yellow"
+    $Args = @("-m", "venv", $LocalVenvDir)
+    if (Test-Path $LocalVenvDir) {
+        $Args = @("-m", "venv", "--clear", $LocalVenvDir)
+    }
+    & $PythonCmd @Args
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "启动器" "创建后端虚拟环境失败" "Red"
+        return $null
+    }
+
+    if (-not (Test-VenvPython $LocalPython)) {
+        Write-Log "启动器" "新建的虚拟环境不可用" "Red"
+        return $null
+    }
+
+    return $LocalPython
 }
 
 # 检查 Python
@@ -42,17 +115,37 @@ if (-not (Test-Path (Join-Path $FrontendDir "node_modules"))) {
 }
 
 # 查找 Python 解释器（优先虚拟环境）
-$PythonExe = $PythonCmd
+$PythonExe = $null
 $VenvPaths = @(
+    (Join-Path $BackendDir ".venv_local\Scripts\python.exe"),
     (Join-Path $BackendDir "venv313\Scripts\python.exe"),
     (Join-Path $BackendDir "venv\Scripts\python.exe"),
+    (Join-Path $RootDir ".venv_local\Scripts\python.exe"),
     (Join-Path $RootDir "venv313\Scripts\python.exe"),
     (Join-Path $RootDir "venv\Scripts\python.exe")
 )
 foreach ($vp in $VenvPaths) {
-    if (Test-Path $vp) {
+    if (Test-VenvPython $vp) {
         $PythonExe = $vp
         break
+    }
+}
+
+if (-not $PythonExe) {
+    $PythonExe = Ensure-LocalBackendVenv $PythonCmd
+}
+
+if (-not $PythonExe) {
+    $PythonExe = $PythonCmd
+}
+
+if (-not (Test-BackendDependencies $PythonExe)) {
+    Write-Log "启动器" "后端依赖未安装，正在执行 pip install..." "Yellow"
+    & $PythonExe -m pip install --upgrade pip
+    & $PythonExe -m pip install -r (Join-Path $BackendDir "requirements.txt")
+    if ($LASTEXITCODE -ne 0) {
+        Write-Log "启动器" "后端依赖安装失败" "Red"
+        exit 1
     }
 }
 

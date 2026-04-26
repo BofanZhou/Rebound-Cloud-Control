@@ -3,6 +3,7 @@ Database connection and session management.
 Supports SQLite (default) and PostgreSQL via DATABASE_URL env var.
 """
 import os
+from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
@@ -11,11 +12,10 @@ from .models import Base
 
 # Default to SQLite for local development.
 # For production PostgreSQL, set env: DATABASE_URL=postgresql://user:pass@host/dbname
-DEFAULT_DB_PATH = os.path.join(
-    os.environ.get("DATA_DIR", "data"),
-    "rebound.db"
-)
-DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH}"
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+DEFAULT_DATA_DIR = Path(os.environ.get("DATA_DIR", str(BACKEND_DIR / "data"))).resolve()
+DEFAULT_DB_PATH = DEFAULT_DATA_DIR / "rebound.db"
+DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH.as_posix()}"
 
 DATABASE_URL = os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
 
@@ -51,6 +51,6 @@ def init_db() -> None:
     """Create all tables if they don't exist."""
     # Ensure directory exists for SQLite
     if DATABASE_URL.startswith("sqlite"):
-        db_path = DATABASE_URL.replace("sqlite:///", "")
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        db_path = Path(DATABASE_URL.replace("sqlite:///", ""))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(bind=engine)
