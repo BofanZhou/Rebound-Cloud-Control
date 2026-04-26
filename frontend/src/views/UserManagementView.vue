@@ -354,4 +354,50 @@ onMounted(fetchUsers)
   background: var(--industrial-bg);
   color: var(--text-primary);
 }
+
+@media (max-width: 640px) {
+  .user-management {
+    max-width: 100%;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toolbar button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 620px;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100svh - 24px);
+    overflow-y: auto;
+    border-radius: 22px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
 </style>

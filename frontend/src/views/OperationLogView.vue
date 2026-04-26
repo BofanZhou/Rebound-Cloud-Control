@@ -333,4 +333,42 @@ onMounted(fetchLogs)
 .btn-text:hover {
   color: var(--text-primary);
 }
+
+@media (max-width: 640px) {
+  .operation-log {
+    max-width: 100%;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-group {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-input,
+  .filter-select,
+  .filter-group button,
+  .toolbar > button {
+    width: 100%;
+  }
+
+  .card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 820px;
+  }
+
+  .pagination {
+    min-width: 520px;
+    justify-content: flex-start;
+  }
+}
 </style>

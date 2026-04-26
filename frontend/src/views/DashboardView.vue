@@ -14,7 +14,7 @@
           <div class="form-row">
             <div class="form-item">
               <label>
-                <span class="label-icon">⌀</span>
+                <span class="label-icon">D</span>
                 管径 (mm)
               </label>
               <div class="input-with-unit">
@@ -32,7 +32,7 @@
             
             <div class="form-item">
               <label>
-                <span class="label-icon">━</span>
+                <span class="label-icon">T</span>
                 壁厚 (mm)
               </label>
               <div class="input-with-unit">
@@ -52,7 +52,7 @@
           <div class="form-row">
             <div class="form-item">
               <label>
-                <span class="label-icon">◈</span>
+                <span class="label-icon">M</span>
                 材质
               </label>
               <select v-model="formData.material" required>
@@ -65,7 +65,7 @@
             
             <div class="form-item">
               <label>
-                <span class="label-icon">∠</span>
+                <span class="label-icon">A</span>
                 目标角度 (°)
               </label>
               <div class="input-with-unit">
@@ -84,11 +84,11 @@
           
           <div class="form-actions">
             <button type="button" @click="handleReset" class="btn-secondary">
-              <span class="btn-icon">↺</span>
+              <span class="btn-icon">R</span>
               重置
             </button>
             <button type="submit" class="btn-primary" :disabled="recommendLoading">
-              <span class="btn-icon">⚡</span>
+              <span class="btn-icon">OK</span>
               {{ recommendLoading ? '计算中...' : '获取推荐参数' }}
             </button>
           </div>
@@ -122,7 +122,7 @@
           
           <div class="explanation-box">
             <div class="box-header">
-              <span class="box-icon">ℹ</span>
+              <span class="box-icon">i</span>
               补偿说明
             </div>
             <p>{{ recommendResult.explanation }}</p>
@@ -130,7 +130,6 @@
           
           <div class="params-panel">
             <div class="panel-header">
-              <span class="panel-icon">📊</span>
               输入参数确认
             </div>
             <div class="panel-grid">
@@ -158,12 +157,10 @@
             :disabled="submitLoading || !canSubmit"
             @click="handleSubmit"
           >
-            <span class="btn-icon">▶</span>
             {{ submitLoading ? '提交中...' : '提交任务到设备' }}
           </button>
           
           <div v-if="!canSubmit && recommendResult" class="warning-hint">
-            <span class="warning-icon">⚠</span>
             设备离线或忙碌中，无法提交任务
           </div>
         </div>
@@ -273,20 +270,11 @@ async function handleSubmit() {
 .container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 22px;
 }
 
-/* 输入卡片 */
 .input-card::after {
-  content: 'INPUT';
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-family: var(--font-display);
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  opacity: 0.5;
+  content: none;
 }
 
 .form-row {
@@ -299,13 +287,14 @@ async function handleSubmit() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: var(--metal-dark);
-  border-radius: 3px;
-  margin-right: 6px;
-  font-size: 10px;
-  color: var(--industrial-yellow);
+  width: 21px;
+  height: 21px;
+  background: rgba(0, 113, 227, 0.10);
+  border-radius: 50%;
+  margin-right: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .input-with-unit {
@@ -328,10 +317,8 @@ async function handleSubmit() {
 }
 
 .digital-input {
-  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
-  font-size: 16px;
-  letter-spacing: 0.5px;
+  font-size: 15px;
 }
 
 .form-actions {
@@ -346,24 +333,16 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--metal-dark);
+  background: rgba(118, 118, 128, 0.10);
 }
 
 .btn-icon {
-  font-size: 14px;
+  font-size: 10px;
+  font-weight: 800;
 }
 
-/* 结果卡片 */
 .result-card::after {
-  content: 'OUTPUT';
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-family: var(--font-display);
-  font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
-  opacity: 0.5;
+  content: none;
 }
 
 .empty-state {
@@ -395,10 +374,8 @@ async function handleSubmit() {
 }
 
 .empty-hint {
-  font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
-  letter-spacing: 1px;
 }
 
 /* 结果内容 */
@@ -409,43 +386,31 @@ async function handleSubmit() {
 }
 
 .result-highlight {
-  background: linear-gradient(135deg, 
-    rgba(26, 109, 255, 0.1) 0%, 
-    rgba(0, 212, 255, 0.05) 100%
-  );
-  border: 1px solid var(--industrial-blue);
-  border-radius: 4px;
-  padding: 24px;
+  background: linear-gradient(180deg, rgba(0, 113, 227, 0.10), rgba(0, 113, 227, 0.05));
+  border: 1px solid rgba(0, 113, 227, 0.12);
+  border-radius: 20px;
+  padding: 28px 24px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
 .result-highlight::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--industrial-blue);
-  box-shadow: 0 0 20px var(--industrial-blue-glow);
+  content: none;
 }
 
 .highlight-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .highlight-value {
-  font-size: 48px;
-  font-weight: 600;
-  color: var(--industrial-blue);
-  text-shadow: 0 0 30px var(--industrial-blue-glow);
-  line-height: 1.2;
+  font-size: 54px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.05;
 }
 
 .compensation-badge {
@@ -454,29 +419,26 @@ async function handleSubmit() {
   gap: 4px;
   margin-top: 12px;
   padding: 6px 14px;
-  border-radius: 4px;
-  font-family: var(--font-display);
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
 }
 
 .compensation-badge.positive {
   background: rgba(22, 163, 74, 0.10);
-  border: 1px solid var(--color-success);
   color: var(--color-success);
 }
 
 .compensation-badge.negative {
   background: rgba(245, 158, 11, 0.10);
-  border: 1px solid var(--color-warning);
   color: var(--color-warning);
 }
 
 /* 说明框 */
 .explanation-box {
-  background: var(--industrial-bg);
+  background: rgba(118, 118, 128, 0.08);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 16px;
   padding: 16px;
 }
 
@@ -484,18 +446,16 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--industrial-yellow);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .box-icon {
   width: 16px;
   height: 16px;
-  background: rgba(245, 166, 35, 0.1);
+  background: rgba(0, 113, 227, 0.10);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -512,9 +472,9 @@ async function handleSubmit() {
 
 /* 参数面板 */
 .params-panel {
-  background: var(--industrial-bg);
+  background: rgba(118, 118, 128, 0.08);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 16px;
   padding: 16px;
 }
 
@@ -522,11 +482,9 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
@@ -543,14 +501,13 @@ async function handleSubmit() {
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: var(--industrial-bg-secondary);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 12px;
 }
 
 .item-label {
   font-size: 11px;
   color: var(--text-muted);
-  text-transform: uppercase;
 }
 
 .item-value {
@@ -573,14 +530,10 @@ async function handleSubmit() {
   gap: 8px;
   padding: 12px;
   background: rgba(245, 158, 11, 0.06);
-  border: 1px dashed var(--color-warning);
-  border-radius: 8px;
+  border: 1px solid rgba(183, 110, 0, 0.16);
+  border-radius: 14px;
   font-size: 12px;
   color: var(--color-warning);
-}
-
-.warning-icon {
-  font-size: 14px;
 }
 
 @media (max-width: 768px) {
@@ -601,15 +554,51 @@ async function handleSubmit() {
   }
 }
 
+@media (max-width: 640px) {
+  .dashboard {
+    max-width: 100%;
+  }
+
+  .container {
+    gap: 14px;
+  }
+
+  .form-row {
+    gap: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+
+  .form-actions button,
+  .btn-submit {
+    width: 100%;
+  }
+
+  .result-highlight {
+    padding: 22px 16px;
+  }
+
+  .highlight-value {
+    font-size: 42px;
+  }
+
+  .panel-item {
+    padding: 12px;
+  }
+}
+
 /* Deep polish */
 .dashboard .card {
-  border-radius: 18px;
+  border-radius: 22px;
 }
 
 .label-icon,
 .box-icon,
-.panel-icon,
-.warning-icon,
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -619,27 +608,22 @@ async function handleSubmit() {
 
 .form-actions button,
 .btn-submit {
-  border-radius: 12px;
+  border-radius: 999px;
   position: relative;
   overflow: hidden;
 }
 
 .form-actions button::before,
 .btn-submit::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-  transform: translateX(-125%);
-  transition: transform 0.45s ease;
+  content: none;
 }
 
 .form-actions button:hover::before,
 .btn-submit:hover::before {
-  transform: translateX(125%);
+  transform: none;
 }
 
 .result-highlight {
-  box-shadow: 0 16px 30px rgba(14, 165, 233, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 </style>

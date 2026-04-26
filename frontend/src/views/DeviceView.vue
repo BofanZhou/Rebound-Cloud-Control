@@ -61,7 +61,7 @@
         <div class="angle-grid">
           <div class="angle-box">
             <div class="angle-header">
-              <span class="angle-icon">🎯</span>
+              <span class="angle-icon">S</span>
               <span class="angle-title">设定角度</span>
             </div>
             <div class="angle-value digital-display">
@@ -74,7 +74,7 @@
           
           <div class="angle-box">
             <div class="angle-header">
-              <span class="angle-icon">📐</span>
+              <span class="angle-icon">A</span>
               <span class="angle-title">实际角度</span>
             </div>
             <div class="angle-value digital-display" :class="actualAngleClass">
@@ -87,7 +87,7 @@
           
           <div class="angle-box deviation-box">
             <div class="angle-header">
-              <span class="angle-icon">⚡</span>
+              <span class="angle-icon">D</span>
               <span class="angle-title">偏差值</span>
             </div>
             <div class="angle-value digital-display" :class="deviationClass">
@@ -949,6 +949,90 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 640px) {
+  .device {
+    max-width: 100%;
+  }
+
+  .container {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .status-display {
+    padding: 8px 0 14px;
+  }
+
+  .indicator-ring {
+    width: 82px;
+    height: 82px;
+  }
+
+  .indicator-core {
+    width: 68px;
+    height: 68px;
+  }
+
+  .status-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .info-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .angle-grid,
+  .control-grid {
+    gap: 10px;
+  }
+
+  .angle-value {
+    font-size: 28px;
+  }
+
+  .control-btn {
+    width: 100%;
+    padding: 13px 14px;
+  }
+
+  .status-flow {
+    align-items: stretch;
+    padding: 10px 0 0;
+  }
+
+  .flow-step {
+    justify-content: flex-start;
+  }
+
+  .step-node {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .node-ring {
+    width: 48px;
+    height: 48px;
+  }
+
+  .node-core {
+    width: 38px;
+    height: 38px;
+  }
+
+  .node-core svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .step-info {
+    align-items: flex-start;
+  }
+}
+
 /* Deep polish */
 .device .card {
   border-radius: 18px;
@@ -983,5 +1067,74 @@ onUnmounted(() => {
 
 .indicator-ring {
   box-shadow: inset 0 0 0 2px rgba(255,255,255,0.42), 0 10px 28px rgba(11, 29, 51, 0.12);
+}
+
+.status-card::after,
+.angle-card::after,
+.control-card::after,
+.flow-card::after {
+  content: none;
+}
+
+.indicator-ring {
+  background: rgba(0, 113, 227, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.indicator-core,
+.node-core {
+  background: #fff;
+}
+
+.status-icon.online {
+  filter: none;
+}
+
+.status-label {
+  border-radius: 999px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.status-label.online,
+.status-label.idle,
+.status-label.running,
+.status-label.completed,
+.status-label.error {
+  border: 0;
+  animation: none;
+}
+
+.angle-box,
+.control-btn {
+  background: rgba(118, 118, 128, 0.08);
+  border-radius: 16px;
+}
+
+.angle-box::before,
+.control-btn::before {
+  content: none;
+}
+
+.angle-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 113, 227, 0.10);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.angle-value.has-value,
+.angle-value.good {
+  text-shadow: none;
+}
+
+.device .card {
+  border-radius: 22px;
 }
 </style>

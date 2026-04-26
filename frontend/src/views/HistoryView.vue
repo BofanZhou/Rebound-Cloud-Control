@@ -133,7 +133,7 @@
           <!-- 基本信息 -->
           <div class="detail-section">
             <div class="section-header">
-              <span class="section-icon">📋</span>
+              <span class="section-icon">ID</span>
               <span class="section-title">基本信息</span>
             </div>
             <div class="detail-grid">
@@ -155,7 +155,7 @@
           <!-- 输入参数 -->
           <div class="detail-section">
             <div class="section-header">
-              <span class="section-icon">⚙️</span>
+              <span class="section-icon">IN</span>
               <span class="section-title">输入参数</span>
             </div>
             <div class="detail-grid">
@@ -181,7 +181,7 @@
           <!-- 推荐参数 -->
           <div class="detail-section">
             <div class="section-header">
-              <span class="section-icon">💡</span>
+              <span class="section-icon">AI</span>
               <span class="section-title">推荐参数</span>
             </div>
             <div class="detail-grid">
@@ -819,6 +819,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   
   .data-table {
@@ -827,6 +828,47 @@ onMounted(() => {
   
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .history {
+    max-width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toolbar button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: calc(100svh - 24px);
+    border-radius: 22px;
+  }
+
+  .modal-header {
+    padding: 16px 18px;
+  }
+
+  .modal-body {
+    padding: 18px;
+  }
+
+  .detail-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 }
 
@@ -859,5 +901,49 @@ onMounted(() => {
 
 .status-badge .status-dot {
   box-shadow: 0 0 0 4px rgba(255,255,255,0.45);
+}
+
+.table-container::before {
+  content: none;
+}
+
+.table-container,
+.modal {
+  border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar button,
+.btn-detail,
+.close-btn,
+.detail-item,
+.id-badge,
+.material-tag,
+.deviation-badge,
+.status-badge {
+  border-radius: 999px;
+}
+
+.detail-item {
+  border-radius: 16px;
+  background: rgba(118, 118, 128, 0.08);
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: saturate(180%) blur(18px);
+}
+
+.section-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 113, 227, 0.10);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
 }
 </style>

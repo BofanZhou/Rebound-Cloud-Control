@@ -708,4 +708,81 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 640px) {
+  .machine-select-page {
+    max-width: 100%;
+  }
+
+  .machines-grid {
+    gap: 14px;
+  }
+
+  .machine-card {
+    padding: 18px;
+  }
+
+  .machine-admin-actions {
+    opacity: 1;
+  }
+
+  .machine-action {
+    gap: 10px;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 12px;
+  }
+
+  .modal-content {
+    max-width: none;
+    border-radius: 22px;
+    padding: 22px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+}
+
+.machine-card {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.05);
+}
+
+.machine-card::before {
+  width: 0;
+}
+
+.machine-card:hover {
+  border-color: rgba(0, 113, 227, 0.22);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.status-dot {
+  animation: none;
+}
+
+.machine-card:hover .machine-action {
+  color: var(--color-primary);
+}
+
+.machine-card.add-machine:hover {
+  border-color: rgba(0, 113, 227, 0.24);
+  background: rgba(0, 113, 227, 0.05);
+}
+
+.add-icon {
+  background: rgba(0, 113, 227, 0.10);
+  border: 0;
+  color: var(--color-primary);
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: saturate(180%) blur(18px);
+}
 </style>

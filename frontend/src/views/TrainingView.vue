@@ -11,7 +11,7 @@
           <label class="upload-area" :class="{ 'has-file': uploadedFile }">
             <input type="file" accept=".csv" @change="handleFileSelect" class="file-input" />
             <div class="upload-content">
-              <span class="upload-icon">📂</span>
+              <span class="upload-icon">CSV</span>
               <span class="upload-text">{{ uploadedFile ? uploadedFile.name : '点击上传 CSV 数据集' }}</span>
               <span class="upload-hint">CSV 列: material, diameter, thickness, target_angle, result</span>
               <span v-if="uploadResult" class="upload-status success">已加载 {{ uploadResult.count }} 条记录</span>
@@ -456,5 +456,82 @@ onUnmounted(stopPolling)
   .container { grid-template-columns: 1fr; }
   .charts-row { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .training-page {
+    max-width: 100%;
+  }
+
+  .container {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .upload-area {
+    padding: 24px 16px;
+  }
+
+  .action-row,
+  .predict-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .progress-stats {
+    gap: 12px;
+  }
+
+  .stat-item {
+    width: 100%;
+  }
+
+  .stat-value.msg {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .final-angle {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .confusion-section {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .confusion-table {
+    min-width: 560px;
+  }
+}
+
+.training-page .card {
+  border-radius: 22px;
+}
+
+.upload-area,
+.predict-result,
+.iterative-result,
+.chart-box {
+  border-radius: 18px;
+  background: rgba(118, 118, 128, 0.08);
+}
+
+.upload-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(0, 113, 227, 0.10);
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress-bar-fill {
+  background: var(--color-primary);
 }
 </style>
