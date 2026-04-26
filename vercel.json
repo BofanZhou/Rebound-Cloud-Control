@@ -5,7 +5,6 @@
   "framework": "vite",
   "functions": {
     "api/index.py": {
-      "runtime": "python3.12",
       "maxDuration": 30,
       "excludeFiles": "{frontend/**,tools/**,backend/.venv_local/**,backend/venv/**,backend/venv313/**,backend/Lib/**,backend/Scripts/**,backend/node_modules/**,backend/data/*.db,backend/data/*.db-*,**/__pycache__/**,node-*.msi,python-*.exe}"
     }
