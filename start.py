@@ -61,11 +61,29 @@ def find_python():
     for vp in venv_paths:
         if vp.exists():
             return str(vp)
-    # fallback
     for cmd in ("python", "python3", "py"):
         if check_command(cmd):
             return cmd
     return None
+
+
+def run_and_stream(cmd, label, color_key, cwd=None):
+    """运行命令并实时输出日志，返回 exit code"""
+    log(label, f"执行: {' '.join(str(c) for c in cmd)}", color_key)
+    proc = subprocess.Popen(
+        cmd,
+        cwd=str(cwd) if cwd else None,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    for line in iter(proc.stdout.readline, b""):
+        if not line:
+            break
+        text = line.decode("utf-8", errors="replace").rstrip()
+        if text:
+            log(label, text, color_key)
+    proc.wait()
+    return proc.returncode
 
 
 def check_backend_installed(python_exe):
@@ -82,6 +100,20 @@ def check_backend_installed(python_exe):
         return False
 
 
+def get_python_version(python_exe):
+    try:
+        result = subprocess.run(
+            [python_exe, "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip() or result.stderr.strip()
+    except Exception:
+        return "未知"
+
+
 def install_backend(python_exe, backend_dir):
     """自动安装后端依赖"""
     req_file = backend_dir / "requirements.txt"
@@ -89,37 +121,51 @@ def install_backend(python_exe, backend_dir):
         log("启动器", f"找不到依赖文件: {req_file}", "error")
         return False
 
-    log("启动器", "后端依赖未安装，正在执行 pip install...", "warn")
-    log("启动器", "（首次安装可能需要 1~3 分钟，请耐心等待）", "warn")
+    log("启动器", "后端核心依赖缺失，正在自动安装...", "warn")
+    log("启动器", f"Python 版本: {get_python_version(python_exe)}", "info")
+    log("启动器", "首次安装约需 1~5 分钟，请耐心等待...", "warn")
 
-    # 尝试使用国内镜像源加速
-    mirror = "https://pypi.tuna.tsinghua.edu.cn/simple"
-    cmd = [
-        python_exe, "-m", "pip", "install",
-        "-r", str(req_file),
-        "-i", mirror,
-        "--trusted-host", "pypi.tuna.tsinghua.edu.cn",
+    # 先尝试升级 pip（避免旧版 pip 导致安装失败）
+    log("启动器", "正在检查 pip 版本...", "info")
+    run_and_stream(
+        [python_exe, "-m", "pip", "install", "--upgrade", "pip", "-q"],
+        "pip", "info"
+    )
+
+    mirrors = [
+        ("清华源", ["-i", "https://pypi.tuna.tsinghua.edu.cn/simple", "--trusted-host", "pypi.tuna.tsinghua.edu.cn"]),
+        ("阿里云", ["-i", "https://mirrors.aliyun.com/pypi/simple/", "--trusted-host", "mirrors.aliyun.com"]),
+        ("官方源", []),
     ]
 
-    ret = subprocess.call(cmd)
-    if ret != 0:
-        log("启动器", "使用清华源安装失败，尝试官方源...", "warn")
-        cmd = [python_exe, "-m", "pip", "install", "-r", str(req_file)]
-        ret = subprocess.call(cmd)
+    for name, extra_args in mirrors:
+        log("启动器", f"尝试使用 {name} 安装依赖...", "info")
+        cmd = [python_exe, "-m", "pip", "install", "-r", str(req_file)] + extra_args
+        ret = run_and_stream(cmd, "pip", "info")
 
-    if ret != 0:
-        log("启动器", "后端依赖安装失败，请手动执行:", "error")
-        log("启动器", f"  cd backend && {python_exe} -m pip install -r requirements.txt", "error")
+        if ret == 0:
+            log("启动器", f"使用 {name} 安装成功", "info")
+            break
+        else:
+            log("启动器", f"使用 {name} 安装失败，尝试下一个源...", "warn")
+    else:
+        log("启动器", "所有镜像源均安装失败，请检查网络或代理设置", "error")
+        log("启动器", f"手动安装命令: cd backend && {python_exe} -m pip install -r requirements.txt", "error")
         return False
 
-    log("启动器", "后端依赖安装完成", "info")
+    # 安装完成后再次验证
+    if not check_backend_installed(python_exe):
+        log("启动器", "依赖安装后验证失败，可能部分包未正确安装", "error")
+        return False
+
+    log("启动器", "后端依赖安装完成并通过验证", "info")
     return True
 
 
 def install_frontend(frontend_dir):
     """自动安装前端依赖"""
     log("启动器", "前端依赖未安装，正在执行 npm install...", "warn")
-    ret = subprocess.call(["npm", "install"], cwd=str(frontend_dir), shell=True)
+    ret = run_and_stream(["npm", "install"], "npm", "info", cwd=str(frontend_dir))
     if ret != 0:
         log("启动器", "前端依赖安装失败，请手动执行 cd frontend && npm install", "error")
         return False
@@ -149,14 +195,19 @@ def main():
         sys.exit(1)
 
     # 3. 检查并安装后端依赖
+    log("启动器", "正在检查后端的 Python 依赖...", "info")
     if not check_backend_installed(python_exe):
         if not install_backend(python_exe, backend_dir):
             sys.exit(1)
+    else:
+        log("启动器", "后端依赖已就绪", "info")
 
     # 4. 检查并安装前端依赖
     if not (frontend_dir / "node_modules").exists():
         if not install_frontend(frontend_dir):
             sys.exit(1)
+    else:
+        log("启动器", "前端依赖已就绪", "info")
 
     # 5. 启动后端
     log("启动器", "正在启动后端服务 (FastAPI) ...", "info")
