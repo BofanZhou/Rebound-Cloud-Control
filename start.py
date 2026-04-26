@@ -9,6 +9,7 @@ import subprocess
 import threading
 import time
 import signal
+import shutil
 from pathlib import Path
 
 # 颜色代码
@@ -45,11 +46,10 @@ def stream_output(proc, label, color_key):
 
 
 def check_command(cmd, name):
-    try:
-        subprocess.run([cmd, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    """跨平台检测命令是否存在（Windows 下能识别 .cmd/.bat）"""
+    if shutil.which(cmd):
         return True
-    except Exception:
-        return False
+    return False
 
 
 def check_backend_deps():
