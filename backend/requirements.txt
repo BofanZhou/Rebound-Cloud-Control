@@ -17,3 +17,8 @@ mangum>=0.17.0
 # Database
 sqlalchemy>=2.0.0
 alembic>=1.13.0
+
+# PyTorch (CPU version for training)
+torch>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0

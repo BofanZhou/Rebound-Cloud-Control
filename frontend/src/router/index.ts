@@ -7,6 +7,7 @@ import LoginView from '../views/LoginView.vue'
 import MachineSelectView from '../views/MachineSelectView.vue'
 import UserManagementView from '../views/UserManagementView.vue'
 import OperationLogView from '../views/OperationLogView.vue'
+import TrainingView from '../views/TrainingView.vue'
 
 
 const router = createRouter({
@@ -54,6 +55,12 @@ const router = createRouter({
       name: 'logs',
       component: OperationLogView,
       meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/training',
+      name: 'training',
+      component: TrainingView,
+      meta: { requiresAuth: true, requiresMachine: true },
     },
   ],
 })

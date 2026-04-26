@@ -13,6 +13,7 @@ from app.routers import (
     auth_router,
     machines_router,
     websocket_router,
+    training_router,
 )
 from app.db import init_db
 
@@ -73,6 +74,7 @@ app.include_router(device_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(machines_router, prefix="/api")
+app.include_router(training_router, prefix="/api")
 app.include_router(websocket_router)
 
 # Vercel rewrite behavior can vary by project settings.
@@ -82,6 +84,7 @@ app.include_router(device_router)
 app.include_router(history_router)
 app.include_router(auth_router)
 app.include_router(machines_router)
+app.include_router(training_router)
 app.include_router(websocket_router)
 
 

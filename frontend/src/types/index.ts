@@ -119,3 +119,43 @@ export interface HistoryRecord {
   created_at: string
   completed_at?: string
 }
+
+// ==================== 模型训练相关类型 ====================
+
+export interface TrainingStatus {
+  is_training: boolean
+  current_epoch: number
+  total_epochs: number
+  train_losses: number[]
+  val_accuracies: number[]
+  final_accuracy: number
+  confusion: number[][]
+  message: string
+  error: string
+  dataset_size: number
+  model_exists: boolean
+}
+
+export interface PredictResult {
+  class: number
+  label: string
+  probabilities: number[]
+}
+
+export interface IterativeStep {
+  iteration: number
+  input_angle: number
+  predicted_class: number
+  predicted_label: string
+  probabilities: number[]
+}
+
+export interface IterativeResult {
+  success: boolean
+  original_angle: number
+  final_angle: number | null
+  final_class: number | null
+  iterations: number
+  steps: IterativeStep[]
+  message: string
+}

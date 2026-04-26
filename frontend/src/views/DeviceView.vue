@@ -600,13 +600,13 @@ onUnmounted(() => {
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--industrial-blue), #5C9DFF);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
   border-radius: 2px;
   transition: width 0.5s ease;
 }
 
 .bar-fill.actual {
-  background: linear-gradient(90deg, var(--industrial-green), #4ade80);
+  background: linear-gradient(90deg, var(--color-success), var(--color-success-light));
 }
 
 .deviation-box::before {
@@ -620,9 +620,11 @@ onUnmounted(() => {
 .indicator-scale {
   height: 6px;
   background: linear-gradient(90deg, 
-    var(--industrial-red) 0%,
-    var(--industrial-yellow) 50%,
-    var(--industrial-red) 100%
+    var(--color-danger) 0%,
+    var(--color-warning) 25%,
+    var(--color-success) 50%,
+    var(--color-warning) 75%,
+    var(--color-danger) 100%
   );
   border-radius: 3px;
   position: relative;

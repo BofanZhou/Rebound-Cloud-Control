@@ -5,12 +5,14 @@ from .history import router as history_router
 from .auth import router as auth_router
 from .machines import router as machines_router
 from .websocket import router as websocket_router
+from .training import router as training_router
 
 __all__ = [
-    "recommend_router", 
-    "device_router", 
+    "recommend_router",
+    "device_router",
     "history_router",
     "auth_router",
     "machines_router",
     "websocket_router",
+    "training_router",
 ]

@@ -414,7 +414,7 @@ onMounted(() => {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(0, 212, 255, 0.03);
+  background: rgba(26, 109, 255, 0.03);
 }
 
 .row-alt {
@@ -446,7 +446,7 @@ onMounted(() => {
 }
 
 .highlight {
-  color: var(--industrial-yellow);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -461,18 +461,18 @@ onMounted(() => {
 }
 
 .deviation-badge.success {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--industrial-green);
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--color-success);
 }
 
 .deviation-badge.warning {
-  background: rgba(245, 166, 35, 0.1);
-  color: var(--industrial-yellow);
+  background: rgba(245, 158, 11, 0.10);
+  color: var(--color-warning);
 }
 
 .deviation-badge.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--industrial-red);
+  background: rgba(220, 38, 38, 0.10);
+  color: var(--color-danger);
 }
 
 .deviation-badge.default {
@@ -499,8 +499,8 @@ onMounted(() => {
 }
 
 .status-badge.success {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--industrial-green);
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--color-success);
 }
 
 .status-badge.success .status-dot {
@@ -649,12 +649,12 @@ onMounted(() => {
 .modal-title .title-icon {
   width: 36px;
   height: 36px;
-  background: var(--metal-dark);
-  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(26, 109, 255, 0.08), rgba(26, 109, 255, 0.04));
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--industrial-yellow);
+  color: var(--color-primary);
 }
 
 .modal-title .title-icon svg {

@@ -11,6 +11,9 @@ import type {
   Machine,
   MachineCreateRequest,
   UserInfo,
+  TrainingStatus,
+  PredictResult,
+  IterativeResult,
 } from '../types'
 
 const API_BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
@@ -236,4 +239,64 @@ export async function getHistory(limit: number = 10, machineId?: string): Promis
   return request<HistoryRecord[]>(url, {
     method: 'GET',
   })
+}
+
+// ==================== 模型训练 ====================
+
+export async function uploadDataset(file: File): Promise<ApiResponse<{ count: number; sample: any[] }>> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const token = getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  const res = await fetch(`${API_BASE}/training/upload`, { method: 'POST', body: formData, headers })
+  if (res.status === 401) { logoutAndRedirectToLogin(); throw new Error('Unauthorized') }
+  return res.json()
+}
+
+export async function getTrainingStatus(): Promise<ApiResponse<TrainingStatus>> {
+  return request<TrainingStatus>('/training/status', { method: 'GET' })
+}
+
+export async function startTraining(epochs = 80, batchSize = 32, lr = 0.001): Promise<ApiResponse<{ message: string }>> {
+  const formData = new FormData()
+  formData.append('epochs', String(epochs))
+  formData.append('batch_size', String(batchSize))
+  formData.append('learning_rate', String(lr))
+  const token = getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  const res = await fetch(`${API_BASE}/training/start`, { method: 'POST', body: formData, headers })
+  return res.json()
+}
+
+export async function predict(material: string, diameter: number, thickness: number, targetAngle: number): Promise<ApiResponse<PredictResult>> {
+  const formData = new FormData()
+  formData.append('material', material)
+  formData.append('diameter', String(diameter))
+  formData.append('thickness', String(thickness))
+  formData.append('target_angle', String(targetAngle))
+  const token = getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  const res = await fetch(`${API_BASE}/training/predict`, { method: 'POST', body: formData, headers })
+  return res.json()
+}
+
+export async function predictIterative(
+  material: string, diameter: number, thickness: number, targetAngle: number,
+  maxIter = 20, step = 0.5,
+): Promise<ApiResponse<IterativeResult>> {
+  const formData = new FormData()
+  formData.append('material', material)
+  formData.append('diameter', String(diameter))
+  formData.append('thickness', String(thickness))
+  formData.append('target_angle', String(targetAngle))
+  formData.append('max_iterations', String(maxIter))
+  formData.append('step', String(step))
+  const token = getToken()
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  const res = await fetch(`${API_BASE}/training/predict-iterative`, { method: 'POST', body: formData, headers })
+  return res.json()
 }

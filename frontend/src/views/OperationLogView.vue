@@ -244,23 +244,23 @@ onMounted(fetchLogs)
 }
 
 .role-badge.admin {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(220, 38, 38, 0.10);
+  color: var(--color-danger);
 }
 
 .role-badge.maintenance {
-  background: rgba(245, 166, 35, 0.1);
-  color: #f5a623;
+  background: rgba(245, 158, 11, 0.10);
+  color: var(--color-warning);
 }
 
 .role-badge.operator {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--color-success);
 }
 
 .role-badge.machine {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: rgba(26, 109, 255, 0.10);
+  color: var(--color-primary);
 }
 
 .action-badge {

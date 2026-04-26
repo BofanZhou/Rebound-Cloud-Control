@@ -397,8 +397,8 @@ function fillDemo(type: string) {
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--industrial-yellow);
-  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(26, 109, 255, 0.1);
 }
 
 .form-group input::placeholder {
@@ -410,8 +410,8 @@ function fillDemo(type: string) {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: rgba(0, 212, 255, 0.05);
-  border: 1px solid rgba(26, 109, 255, 0.2);
+  background: rgba(26, 109, 255, 0.04);
+  border: 1px solid rgba(26, 109, 255, 0.15);
   border-radius: 6px;
   font-size: 12px;
   color: var(--text-secondary);
@@ -457,21 +457,21 @@ function fillDemo(type: string) {
 }
 
 .role-tag.admin {
-  background: rgba(245, 166, 35, 0.1);
-  border: 1px solid var(--industrial-yellow);
-  color: var(--industrial-yellow);
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
 }
 
 .role-tag.maintenance {
-  background: rgba(26, 109, 255, 0.1);
-  border: 1px solid var(--industrial-blue);
-  color: var(--industrial-blue);
+  background: rgba(26, 109, 255, 0.10);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
 }
 
 .role-tag.operator {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid var(--industrial-green);
-  color: var(--industrial-green);
+  background: rgba(22, 163, 74, 0.10);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
 }
 
 .error-message {
@@ -522,7 +522,7 @@ function fillDemo(type: string) {
 }
 
 .login-btn:hover:not(:disabled) {
-  box-shadow: 0 16px 28px rgba(14, 165, 233, 0.35);
+  box-shadow: 0 12px 28px rgba(26, 109, 255, 0.3);
   transform: translateY(-2px);
 }
 

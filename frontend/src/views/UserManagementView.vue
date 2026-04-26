@@ -233,60 +233,41 @@ onMounted(fetchUsers)
   margin-bottom: 20px;
 }
 
-/* Uses global .card from App.vue */
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table th,
-.data-table td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
 .data-table th {
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  background: var(--industrial-bg);
 }
 
 .data-table td {
-  color: var(--text-primary);
   font-size: 14px;
 }
 
 .role-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
 }
 
 .role-badge.admin {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background: rgba(220, 38, 38, 0.10);
+  color: var(--color-danger);
 }
 
 .role-badge.maintenance {
-  background: rgba(245, 166, 35, 0.1);
-  color: #f5a623;
+  background: rgba(245, 158, 11, 0.10);
+  color: var(--color-warning);
 }
 
 .role-badge.operator {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--color-success);
 }
 
 .btn-text {
   background: none;
   border: none;
-  color: var(--industrial-blue);
+  color: var(--color-primary);
   cursor: pointer;
   font-size: 13px;
   padding: 4px 8px;
@@ -298,7 +279,7 @@ onMounted(fetchUsers)
 }
 
 .btn-text.danger {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .loading,
@@ -308,33 +289,13 @@ onMounted(fetchUsers)
   color: var(--text-muted);
 }
 
-/* Modal */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  background: rgba(11, 29, 51, 0.5);
+  backdrop-filter: blur(3px);
 }
 
 .modal {
-  background: var(--industrial-bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 28px;
-  width: 100%;
-  max-width: 420px;
-}
-
-.modal h3 {
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  color: var(--text-primary);
+  border-radius: 14px;
 }
 
 .form-item {
@@ -356,7 +317,7 @@ onMounted(fetchUsers)
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--industrial-bg);
   color: var(--text-primary);
   font-size: 14px;
@@ -369,18 +330,14 @@ onMounted(fetchUsers)
   margin-top: 24px;
 }
 
-.btn-primary,
-.btn-secondary {
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2563EB 100%);
+  color: #fff;
+  border: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
   cursor: pointer;
-  border: none;
-}
-
-.btn-primary {
-  background: var(--industrial-blue);
-  color: white;
 }
 
 .btn-primary:disabled {
@@ -389,7 +346,12 @@ onMounted(fetchUsers)
 }
 
 .btn-secondary {
-  background: var(--metal-dark);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--industrial-bg);
   color: var(--text-primary);
 }
 </style>

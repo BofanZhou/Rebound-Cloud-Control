@@ -294,7 +294,6 @@ onMounted(() => {
 .machine-select-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 24px;
 }
 
 /* Machines Grid */
@@ -504,11 +503,11 @@ onMounted(() => {
 }
 
 .admin-btn.delete {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .admin-btn.delete:hover {
-  background: #ef4444;
+  background: var(--color-danger);
   color: white;
 }
 

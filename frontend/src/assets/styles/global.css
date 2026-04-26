@@ -4,8 +4,8 @@
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid rgba(11, 29, 51, 0.08);
+  padding-bottom: 14px;
+  border-bottom: 2px solid rgba(11, 29, 51, 0.06);
 }
 
 .page-title {
@@ -13,7 +13,7 @@
   align-items: center;
   gap: 12px;
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -24,8 +24,8 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(26, 109, 255, 0.12), rgba(26, 109, 255, 0.04));
-  color: var(--industrial-blue);
+  background: linear-gradient(135deg, rgba(26, 109, 255, 0.10), rgba(26, 109, 255, 0.04));
+  color: var(--color-primary);
 }
 
 .title-icon svg {
@@ -42,7 +42,7 @@
   font-size: 11px;
   color: var(--text-muted);
   font-family: var(--font-display);
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 /* ==================== Modal ==================== */
@@ -52,7 +52,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(11, 29, 51, 0.5);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,15 +64,15 @@
 .modal-content {
   background: var(--industrial-bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 28px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(11, 29, 51, 0.15);
+  box-shadow: 0 8px 32px rgba(11, 29, 51, 0.12);
 }
 
 .modal-content h3 {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 20px;
 }
@@ -96,11 +97,11 @@
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .data-table tr:hover td {
-  background: rgba(26, 109, 255, 0.03);
+  background: rgba(26, 109, 255, 0.02);
 }
 
 .data-table .empty-cell {
@@ -114,6 +115,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 20px;
+  align-items: center;
 }
 
 /* ==================== Digital Display ==================== */
@@ -126,7 +128,7 @@
 .table-container {
   background: var(--industrial-bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 2px 12px rgba(11, 29, 51, 0.04), 0 8px 24px rgba(11, 29, 51, 0.03);
 }

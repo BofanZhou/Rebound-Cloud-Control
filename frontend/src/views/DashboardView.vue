@@ -461,15 +461,15 @@ async function handleSubmit() {
 }
 
 .compensation-badge.positive {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid var(--industrial-green);
-  color: var(--industrial-green);
+  background: rgba(22, 163, 74, 0.10);
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
 }
 
 .compensation-badge.negative {
-  background: rgba(245, 166, 35, 0.1);
-  border: 1px solid var(--industrial-yellow);
-  color: var(--industrial-yellow);
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
 }
 
 /* 说明框 */
@@ -572,11 +572,11 @@ async function handleSubmit() {
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  background: rgba(245, 166, 35, 0.05);
-  border: 1px dashed var(--industrial-yellow);
-  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px dashed var(--color-warning);
+  border-radius: 8px;
   font-size: 12px;
-  color: var(--industrial-yellow);
+  color: var(--color-warning);
 }
 
 .warning-icon {
