@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
 回弹云控管理系统 —— 一键启动脚本
-同时启动后端 (FastAPI) 和前端 (Vite)，并实时显示彩色日志。
+自动检测并安装缺失依赖，同时启动后端 (FastAPI) 和前端 (Vite)。
 """
 import os
 import sys
 import subprocess
 import threading
 import time
-import signal
 import shutil
 from pathlib import Path
 
@@ -45,26 +44,87 @@ def stream_output(proc, label, color_key):
         pass
 
 
-def check_command(cmd, name):
-    """跨平台检测命令是否存在（Windows 下能识别 .cmd/.bat）"""
-    if shutil.which(cmd):
-        return True
-    return False
+def check_command(cmd):
+    """跨平台检测命令是否存在（Windows 下能识别 .cmd/.bat/.exe）"""
+    return shutil.which(cmd) is not None
 
 
-def check_backend_deps():
+def find_python():
+    """查找可用的 Python 解释器，优先虚拟环境"""
     backend_dir = Path(__file__).parent / "backend"
     venv_paths = [
         backend_dir / "venv313" / "Scripts" / "python.exe",
         backend_dir / "venv" / "Scripts" / "python.exe",
-        backend_dir / ".." / "venv313" / "Scripts" / "python.exe",
-        backend_dir / ".." / "venv" / "Scripts" / "python.exe",
+        Path(__file__).parent / "venv313" / "Scripts" / "python.exe",
+        Path(__file__).parent / "venv" / "Scripts" / "python.exe",
     ]
     for vp in venv_paths:
         if vp.exists():
             return str(vp)
-    # fallback to system python
-    return sys.executable
+    # fallback
+    for cmd in ("python", "python3", "py"):
+        if check_command(cmd):
+            return cmd
+    return None
+
+
+def check_backend_installed(python_exe):
+    """检测后端核心依赖是否已安装"""
+    try:
+        subprocess.run(
+            [python_exe, "-c", "import fastapi, uvicorn, sqlalchemy"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
+        return True
+    except Exception:
+        return False
+
+
+def install_backend(python_exe, backend_dir):
+    """自动安装后端依赖"""
+    req_file = backend_dir / "requirements.txt"
+    if not req_file.exists():
+        log("启动器", f"找不到依赖文件: {req_file}", "error")
+        return False
+
+    log("启动器", "后端依赖未安装，正在执行 pip install...", "warn")
+    log("启动器", "（首次安装可能需要 1~3 分钟，请耐心等待）", "warn")
+
+    # 尝试使用国内镜像源加速
+    mirror = "https://pypi.tuna.tsinghua.edu.cn/simple"
+    cmd = [
+        python_exe, "-m", "pip", "install",
+        "-r", str(req_file),
+        "-i", mirror,
+        "--trusted-host", "pypi.tuna.tsinghua.edu.cn",
+    ]
+
+    ret = subprocess.call(cmd)
+    if ret != 0:
+        log("启动器", "使用清华源安装失败，尝试官方源...", "warn")
+        cmd = [python_exe, "-m", "pip", "install", "-r", str(req_file)]
+        ret = subprocess.call(cmd)
+
+    if ret != 0:
+        log("启动器", "后端依赖安装失败，请手动执行:", "error")
+        log("启动器", f"  cd backend && {python_exe} -m pip install -r requirements.txt", "error")
+        return False
+
+    log("启动器", "后端依赖安装完成", "info")
+    return True
+
+
+def install_frontend(frontend_dir):
+    """自动安装前端依赖"""
+    log("启动器", "前端依赖未安装，正在执行 npm install...", "warn")
+    ret = subprocess.call(["npm", "install"], cwd=str(frontend_dir), shell=True)
+    if ret != 0:
+        log("启动器", "前端依赖安装失败，请手动执行 cd frontend && npm install", "error")
+        return False
+    log("启动器", "前端依赖安装完成", "info")
+    return True
 
 
 def main():
@@ -76,29 +136,29 @@ def main():
     print("  回弹云控管理系统 —— 一键启动脚本")
     print("=" * 60)
 
-    # 检查 Python
-    if not check_command("python", "Python") and not check_command("python3", "Python"):
+    # 1. 检查 Python
+    python_exe = find_python()
+    if not python_exe:
         log("启动器", "错误：未检测到 Python，请安装 Python 3.10+", "error")
         sys.exit(1)
+    log("启动器", f"使用 Python: {python_exe}", "info")
 
-    # 检查 Node.js
-    if not check_command("npm", "Node.js"):
+    # 2. 检查 Node.js
+    if not check_command("npm"):
         log("启动器", "错误：未检测到 Node.js / npm，请安装 Node.js 18+", "error")
         sys.exit(1)
 
-    # 检查前端依赖
-    if not (frontend_dir / "node_modules").exists():
-        log("启动器", "前端依赖未安装，正在执行 npm install...", "warn")
-        ret = subprocess.call(["npm", "install"], cwd=str(frontend_dir), shell=True)
-        if ret != 0:
-            log("启动器", "前端依赖安装失败，请手动执行 cd frontend && npm install", "error")
+    # 3. 检查并安装后端依赖
+    if not check_backend_installed(python_exe):
+        if not install_backend(python_exe, backend_dir):
             sys.exit(1)
 
-    # 选择 Python 解释器
-    python_exe = check_backend_deps()
-    log("启动器", f"使用 Python: {python_exe}", "info")
+    # 4. 检查并安装前端依赖
+    if not (frontend_dir / "node_modules").exists():
+        if not install_frontend(frontend_dir):
+            sys.exit(1)
 
-    # 启动后端
+    # 5. 启动后端
     log("启动器", "正在启动后端服务 (FastAPI) ...", "info")
     backend_proc = subprocess.Popen(
         [python_exe, "main.py"],
@@ -114,7 +174,7 @@ def main():
     # 等待后端就绪
     time.sleep(2)
 
-    # 启动前端
+    # 6. 启动前端
     log("启动器", "正在启动前端服务 (Vite) ...", "info")
     frontend_proc = subprocess.Popen(
         ["npm", "run", "dev"],
@@ -138,7 +198,6 @@ def main():
     try:
         while not shutdown_event.is_set():
             time.sleep(0.5)
-            # 检查子进程是否意外退出
             for p in procs:
                 if p.poll() is not None:
                     time.sleep(1)
