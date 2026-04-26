@@ -5,6 +5,9 @@ import DeviceView from '../views/DeviceView.vue'
 import HistoryView from '../views/HistoryView.vue'
 import LoginView from '../views/LoginView.vue'
 import MachineSelectView from '../views/MachineSelectView.vue'
+import UserManagementView from '../views/UserManagementView.vue'
+import OperationLogView from '../views/OperationLogView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,6 +18,7 @@ const router = createRouter({
       component: LoginView,
       meta: { public: true },
     },
+
     {
       path: '/machines',
       name: 'machines',
@@ -39,6 +43,18 @@ const router = createRouter({
       component: HistoryView,
       meta: { requiresAuth: true, requiresMachine: true },
     },
+    {
+      path: '/users',
+      name: 'users',
+      component: UserManagementView,
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
+      path: '/logs',
+      name: 'logs',
+      component: OperationLogView,
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
   ],
 })
 
@@ -57,7 +73,7 @@ router.beforeEach((to, _from, next) => {
   
   // 公开页面（登录页）
   if (to.meta.public) {
-    if (isLoggedIn) {
+    if (isLoggedIn && !to.meta.skipAuthRedirect) {
       // 已登录，跳转到对应页面
       if (isMachineLogin || hasSelectedMachine) {
         next('/')
@@ -89,6 +105,12 @@ router.beforeEach((to, _from, next) => {
       next('/machines')
       return
     }
+  }
+  
+  // 需要管理员权限的页面
+  if (to.meta.requiresAdmin && authStore.userRole !== 'admin') {
+    next('/')
+    return
   }
   
   next()

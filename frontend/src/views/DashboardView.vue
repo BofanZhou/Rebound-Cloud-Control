@@ -1,16 +1,10 @@
 <template>
   <div class="dashboard">
-    <div class="page-header">
-      <h2 class="page-title">
-        <span class="title-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-        </span>
-        参数推荐
-      </h2>
-      <span class="page-subtitle">PARAMETER RECOMMENDATION</span>
-    </div>
+    <PageHeader
+      title="参数推荐"
+      subtitle="PARAMETER RECOMMENDATION"
+      :icon="pageIcon"
+    />
     
     <div class="container">
       <!-- 左侧：参数输入 -->
@@ -184,9 +178,14 @@ import type { RecommendParams, RecommendResult, TaskSubmitParams } from '../type
 import { getRecommend, submitTask } from '../api'
 import { useDeviceStore } from '../stores/device'
 import { useAuthStore } from '../stores/auth'
+import { useToastStore } from '../stores/toast'
+import PageHeader from '../components/PageHeader.vue'
+
+const pageIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`
 
 const deviceStore = useDeviceStore()
 const authStore = useAuthStore()
+const toast = useToastStore()
 
 // 表单数据
 const formData = reactive<RecommendParams>({
@@ -215,12 +214,12 @@ async function handleRecommend() {
     const res = await getRecommend({ ...formData })
     if (res.code === 0) {
       recommendResult.value = res.data
-      alert('获取推荐参数成功！')
+      toast.show('获取推荐参数成功！', 'success')
     } else {
-      alert('获取推荐失败: ' + res.message)
+      toast.show('获取推荐失败: ' + res.message, 'error')
     }
   } catch (err) {
-    alert('获取推荐参数失败: ' + (err instanceof Error ? err.message : '未知错误'))
+    toast.show('获取推荐参数失败: ' + (err instanceof Error ? err.message : '未知错误'), 'error')
   } finally {
     recommendLoading.value = false
   }
@@ -252,13 +251,13 @@ async function handleSubmit() {
     const machineId = authStore.currentMachine?.id
     const res = await submitTask(params, machineId)
     if (res.code === 0) {
-      alert(`任务提交成功: ${res.data.task_id}`)
+      toast.show(`任务提交成功: ${res.data.task_id}`, 'success')
       recommendResult.value = null
     } else {
-      alert('提交任务失败: ' + res.message)
+      toast.show('提交任务失败: ' + res.message, 'error')
     }
   } catch (err) {
-    alert('提交任务失败: ' + (err instanceof Error ? err.message : '未知错误'))
+    toast.show('提交任务失败: ' + (err instanceof Error ? err.message : '未知错误'), 'error')
   } finally {
     submitLoading.value = false
   }
@@ -269,48 +268,6 @@ async function handleSubmit() {
 .dashboard {
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.title-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-}
-
-.title-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.page-subtitle {
-  font-family: var(--font-display);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
 }
 
 .container {
@@ -453,7 +410,7 @@ async function handleSubmit() {
 
 .result-highlight {
   background: linear-gradient(135deg, 
-    rgba(0, 212, 255, 0.1) 0%, 
+    rgba(26, 109, 255, 0.1) 0%, 
     rgba(0, 212, 255, 0.05) 100%
   );
   border: 1px solid var(--industrial-blue);

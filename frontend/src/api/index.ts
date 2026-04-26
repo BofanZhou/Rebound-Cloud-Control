@@ -130,7 +130,36 @@ export async function getMe(): Promise<ApiResponse<any>> {
 }
 
 export async function getUsers(): Promise<ApiResponse<UserInfo[]>> {
-  return request('/auth/users', {
+  return request<UserInfo[]>('/auth/users', {
+    method: 'GET',
+  })
+}
+
+export async function createUser(data: { username: string; password: string; role: string; name: string }): Promise<ApiResponse<UserInfo>> {
+  return request<UserInfo>('/auth/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteUser(username: string): Promise<ApiResponse<null>> {
+  return request<null>(`/auth/users/${username}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function updateUserPassword(username: string, newPassword: string): Promise<ApiResponse<null>> {
+  return request<null>(`/auth/users/${username}/password`, {
+    method: 'POST',
+    body: JSON.stringify({ new_password: newPassword }),
+  })
+}
+
+export async function getOperationLogs(limit: number = 100, offset: number = 0, username?: string, action?: string): Promise<ApiResponse<{ logs: any[]; total: number; limit: number; offset: number }>> {
+  let url = `/auth/logs?limit=${limit}&offset=${offset}`
+  if (username) url += `&username=${username}`
+  if (action) url += `&action=${action}`
+  return request(url, {
     method: 'GET',
   })
 }
@@ -149,6 +178,19 @@ export async function createMachine(data: MachineCreateRequest): Promise<ApiResp
   return request<Machine>('/machines', {
     method: 'POST',
     body: JSON.stringify(data),
+  })
+}
+
+export async function updateMachine(machineId: string, data: { name?: string; location?: string }): Promise<ApiResponse<Machine>> {
+  return request<Machine>(`/machines/${machineId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteMachine(machineId: string): Promise<ApiResponse<null>> {
+  return request<null>(`/machines/${machineId}`, {
+    method: 'DELETE',
   })
 }
 

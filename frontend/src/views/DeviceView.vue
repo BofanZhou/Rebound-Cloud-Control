@@ -1,16 +1,10 @@
 <template>
   <div class="device">
-    <div class="page-header">
-      <h2 class="page-title">
-        <span class="title-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-          </svg>
-        </span>
-        设备状态
-      </h2>
-      <span class="page-subtitle">DEVICE MONITORING</span>
-    </div>
+    <PageHeader
+      title="设备状态"
+      subtitle="DEVICE MONITORING"
+      :icon="pageIcon"
+    />
     
     <div class="container">
       <!-- 设备状态卡片 -->
@@ -211,10 +205,17 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useDeviceStore } from '../stores/device'
 import { useAuthStore } from '../stores/auth'
+import { useToastStore } from '../stores/toast'
+import { formatTime, formatDeviation } from '../utils'
+import PageHeader from '../components/PageHeader.vue'
+
+const pageIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`
+
 // DeviceStatus type is used in the template via store
 
 const deviceStore = useDeviceStore()
 const authStore = useAuthStore()
+const toast = useToastStore()
 
 // 获取当前机器ID
 const currentMachineId = computed(() => authStore.currentMachine?.id)
@@ -254,15 +255,15 @@ const canReset = computed(() =>
 )
 
 function handleSimulateStart() {
-  alert('模拟：任务开始执行')
+  toast.show('模拟：任务开始执行', 'info')
 }
 
 function handleSimulateComplete() {
-  alert('模拟：任务完成')
+  toast.show('模拟：任务完成', 'success')
 }
 
 function handleReset() {
-  alert('模拟：设备重置')
+  toast.show('模拟：设备重置', 'info')
 }
 
 // 自动刷新
@@ -270,9 +271,9 @@ const autoRefresh = ref(true)
 
 function handleAutoRefreshChange() {
   if (autoRefresh.value) {
-    deviceStore.startPolling(2000, currentMachineId.value)
+    deviceStore.startMonitoring(currentMachineId.value)
   } else {
-    deviceStore.stopPolling()
+    deviceStore.stopMonitoring()
   }
 }
 
@@ -302,17 +303,6 @@ const currentStepIndex = computed(() => {
 })
 
 // 工具函数
-function formatTime(time: string | undefined): string {
-  if (!time) return '---'
-  return new Date(time).toLocaleString('zh-CN')
-}
-
-function formatDeviation(deviation: number | undefined): string {
-  if (deviation === undefined) return '0.00'
-  const sign = deviation >= 0 ? '+' : ''
-  return `${sign}${deviation.toFixed(2)}`
-}
-
 function getAnglePercent(angle: number | undefined): number {
   if (angle === undefined) return 0
   return Math.min(Math.max(angle / 180 * 100, 0), 100)
@@ -327,12 +317,12 @@ function getDeviationPercent(deviation: number | undefined): number {
 // 生命周期
 onMounted(() => {
   if (autoRefresh.value) {
-    deviceStore.startPolling(2000, currentMachineId.value)
+    deviceStore.startMonitoring(currentMachineId.value)
   }
 })
 
 onUnmounted(() => {
-  deviceStore.stopPolling()
+  deviceStore.stopMonitoring()
 })
 </script>
 
@@ -340,48 +330,6 @@ onUnmounted(() => {
 .device {
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.title-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-}
-
-.title-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.page-subtitle {
-  font-family: var(--font-display);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
 }
 
 .container {
@@ -478,15 +426,15 @@ onUnmounted(() => {
 }
 
 .status-label.running {
-  background: rgba(0, 212, 255, 0.1);
+  background: rgba(26, 109, 255, 0.1);
   border: 1px solid var(--industrial-blue);
   color: var(--industrial-blue);
   animation: pulse-glow 1.5s infinite;
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4); }
+  0%, 100% { box-shadow: 0 0 10px rgba(26, 109, 255, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(26, 109, 255, 0.4); }
 }
 
 .status-label.completed {
@@ -652,7 +600,7 @@ onUnmounted(() => {
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--industrial-blue), #4ddbff);
+  background: linear-gradient(90deg, var(--industrial-blue), #5C9DFF);
   border-radius: 2px;
   transition: width 0.5s ease;
 }
@@ -741,7 +689,7 @@ onUnmounted(() => {
 
 .control-btn.complete:hover:not(:disabled) {
   border-color: var(--industrial-blue);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 20px rgba(26, 109, 255, 0.1);
 }
 
 .control-btn.reset:hover:not(:disabled) {
@@ -1032,6 +980,6 @@ onUnmounted(() => {
 }
 
 .indicator-ring {
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.42), 0 10px 28px rgba(15, 23, 42, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.42), 0 10px 28px rgba(11, 29, 51, 0.12);
 }
 </style>

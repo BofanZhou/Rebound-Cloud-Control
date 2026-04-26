@@ -4,12 +4,15 @@
       <!-- Logo 区域 -->
       <div class="login-header">
         <div class="logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          <svg viewBox="-2 -4 77 71" width="90" height="82">
+            <rect x="0" y="0" width="32" height="32" rx="1.5" ry="1.5" fill="#0B1D33"/>
+            <g transform="rotate(6 54.585 14.415)"><rect x="38.585" y="-1.585" width="32" height="32" rx="1.5" ry="1.5" fill="#1A6DFF"/></g>
+            <rect x="0" y="35" width="32" height="32" rx="1.5" ry="1.5" fill="#0B1D33"/>
+            <rect x="37" y="35" width="32" height="32" rx="1.5" ry="1.5" fill="#6B7280"/>
           </svg>
         </div>
-        <h1>钢管回弹智能补偿系统</h1>
-        <p class="subtitle">STEEL PIPE SPRINGBACK COMPENSATION</p>
+        <h1>ZIKOI 钢管回弹云控</h1>
+        <p class="subtitle">STEEL PIPE SPRINGBACK CLOUD CONTROL</p>
       </div>
 
       <!-- 登录类型切换 -->
@@ -344,7 +347,7 @@ function fillDemo(type: string) {
 .tab-btn.active {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(14, 165, 233, 0.08));
   border-color: var(--industrial-blue);
-  color: #075985;
+  color: #0B1D33;
   box-shadow: 0 8px 22px rgba(14, 165, 233, 0.2);
 }
 
@@ -408,7 +411,7 @@ function fillDemo(type: string) {
   gap: 8px;
   padding: 12px;
   background: rgba(0, 212, 255, 0.05);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid rgba(26, 109, 255, 0.2);
   border-radius: 6px;
   font-size: 12px;
   color: var(--text-secondary);
@@ -460,7 +463,7 @@ function fillDemo(type: string) {
 }
 
 .role-tag.maintenance {
-  background: rgba(0, 212, 255, 0.1);
+  background: rgba(26, 109, 255, 0.1);
   border: 1px solid var(--industrial-blue);
   color: var(--industrial-blue);
 }
@@ -500,7 +503,7 @@ function fillDemo(type: string) {
 .login-btn {
   width: 100%;
   padding: 14px 24px;
-  background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
+  background: linear-gradient(135deg, var(--industrial-yellow) 0%, var(--industrial-blue) 100%);
   border: 1px solid var(--industrial-yellow);
   border-radius: 12px;
   color: #fff;
@@ -544,8 +547,8 @@ function fillDemo(type: string) {
 .loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(0,0,0,0.3);
-  border-top-color: #000;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--text-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -12,7 +12,9 @@ from app.routers import (
     history_router,
     auth_router,
     machines_router,
+    websocket_router,
 )
+from app.db import init_db
 
 APP_VERSION = "0.2.1"
 APP_NAME = "Steel Pipe Springback Compensation API"
@@ -22,6 +24,11 @@ app = FastAPI(
     description="Prototype with multi-machine management and authentication",
     version=APP_VERSION,
 )
+
+
+@app.on_event("startup")
+async def startup_event():
+    init_db()
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,6 +73,7 @@ app.include_router(device_router, prefix="/api")
 app.include_router(history_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(machines_router, prefix="/api")
+app.include_router(websocket_router)
 
 # Vercel rewrite behavior can vary by project settings.
 # Register non-/api paths as compatibility fallback.
@@ -74,6 +82,7 @@ app.include_router(device_router)
 app.include_router(history_router)
 app.include_router(auth_router)
 app.include_router(machines_router)
+app.include_router(websocket_router)
 
 
 @app.get("/")

@@ -1,16 +1,19 @@
 ﻿<template>
   <div class="app-shell">
-    <template v-if="!isLoginPage">
+    <template v-if="!isBareLayout">
       <header class="topbar">
         <div class="topbar-inner">
           <div class="brand">
             <div class="brand-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              <svg viewBox="-2 -4 77 71" width="36" height="32">
+                <rect x="0" y="0" width="32" height="32" rx="1.5" ry="1.5" fill="#0B1D33"/>
+                <g transform="rotate(6 54.585 14.415)"><rect x="38.585" y="-1.585" width="32" height="32" rx="1.5" ry="1.5" fill="#1A6DFF"/></g>
+                <rect x="0" y="35" width="32" height="32" rx="1.5" ry="1.5" fill="#0B1D33"/>
+                <rect x="37" y="35" width="32" height="32" rx="1.5" ry="1.5" fill="#6B7280"/>
               </svg>
             </div>
             <div class="brand-text">
-              <span class="brand-title">Rebound Cloud Control</span>
+              <span class="brand-title">ZIKOI</span>
               <span class="brand-sub">{{ currentMachineName }}</span>
             </div>
           </div>
@@ -73,6 +76,8 @@
     <template v-else>
       <router-view />
     </template>
+
+    <ToastContainer />
   </div>
 </template>
 
@@ -80,12 +85,13 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import ToastContainer from './components/ToastContainer.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const isLoginPage = computed(() => route.name === 'login')
+const isBareLayout = computed(() => route.name === 'login' || !!route.meta.bareLayout)
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const isMachineLogin = computed(() => authStore.isMachineLogin)
 const userRole = computed(() => authStore.userRole)
@@ -105,26 +111,43 @@ const roleLabel = computed(() => {
 
 const authMode = computed(() => (isMachineLogin.value ? 'Machine Login' : 'User Login'))
 
-const menuItems = [
-  {
-    key: 'dashboard',
-    label: 'Dashboard',
-    path: '/',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
-  },
-  {
-    key: 'device',
-    label: 'Device',
-    path: '/device',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
-  },
-  {
-    key: 'history',
-    label: 'History',
-    path: '/history',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  },
-]
+const menuItems = computed(() => {
+  const items = [
+    {
+      key: 'dashboard',
+      label: 'Dashboard',
+      path: '/',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+    },
+    {
+      key: 'device',
+      label: 'Device',
+      path: '/device',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
+    },
+    {
+      key: 'history',
+      label: 'History',
+      path: '/history',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    },
+  ]
+  if (authStore.userRole === 'admin') {
+    items.push({
+      key: 'users',
+      label: 'Users',
+      path: '/users',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    })
+    items.push({
+      key: 'logs',
+      label: 'Logs',
+      path: '/logs',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+    })
+  }
+  return items
+})
 
 function switchMachine() {
   router.push('/machines')
@@ -138,33 +161,33 @@ function handleLogout() {
 
 <style>
 :root {
-  --industrial-bg: #f2f5f9;
+  --industrial-bg: #F4F3EE;
   --industrial-bg-secondary: #ffffff;
   --industrial-bg-card: #ffffff;
 
-  --metal-dark: #e8edf3;
-  --metal-mid: #d9e1ea;
-  --metal-light: #c8d2de;
-  --metal-bright: #8b99aa;
+  --metal-dark: #E8E6DD;
+  --metal-mid: #D8D6CB;
+  --metal-light: #D8D6CB;
+  --metal-bright: #9CA3AF;
 
-  --industrial-yellow: #f59e0b;
-  --industrial-yellow-glow: rgba(245, 158, 11, 0.28);
-  --industrial-orange: #f97316;
+  --industrial-yellow: #1A6DFF;
+  --industrial-yellow-glow: rgba(26, 109, 255, 0.28);
+  --industrial-orange: #1A6DFF;
   --industrial-red: #dc2626;
   --industrial-green: #16a34a;
   --industrial-green-glow: rgba(22, 163, 74, 0.3);
-  --industrial-blue: #0ea5e9;
-  --industrial-blue-glow: rgba(14, 165, 233, 0.28);
+  --industrial-blue: #1A6DFF;
+  --industrial-blue-glow: rgba(26, 109, 255, 0.28);
 
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
+  --text-primary: #0B1D33;
+  --text-secondary: #142845;
+  --text-muted: #6B7280;
 
-  --border-color: #d9e1ea;
-  --border-bright: #b8c4d3;
+  --border-color: rgba(11, 29, 51, 0.12);
+  --border-bright: rgba(11, 29, 51, 0.25);
 
   --font-display: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
-  --font-body: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-body: 'Inter Tight', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 * {
@@ -177,9 +200,9 @@ body {
   font-family: var(--font-body);
   color: var(--text-primary);
   background:
-    radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.1), transparent 40%),
-    radial-gradient(circle at 90% 10%, rgba(245, 158, 11, 0.12), transparent 45%),
-    linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%);
+    radial-gradient(circle at 10% 10%, rgba(26, 109, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(11, 29, 51, 0.04), transparent 45%),
+    linear-gradient(180deg, #F4F3EE 0%, #E8E6DD 100%);
   min-height: 100vh;
 }
 
@@ -195,7 +218,7 @@ body {
   z-index: 100;
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(185, 197, 212, 0.7);
+  border-bottom: 1px solid rgba(11, 29, 51, 0.12);
 }
 
 .topbar-inner {
@@ -222,8 +245,8 @@ body {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
-  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.3);
+  background: linear-gradient(135deg, #1A6DFF 0%, #0B1D33 100%);
+  box-shadow: 0 10px 24px rgba(26, 109, 255, 0.3);
 }
 
 .brand-mark svg {
@@ -268,15 +291,15 @@ body {
 }
 
 .nav-chip:hover {
-  background: rgba(14, 165, 233, 0.1);
-  color: #0369a1;
+  background: rgba(26, 109, 255, 0.1);
+  color: #0B1D33;
 }
 
 .nav-chip.active {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #1A6DFF 0%, #1A6DFF 100%);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 10px 20px rgba(26, 109, 255, 0.25);
 }
 
 .chip-icon {
@@ -313,13 +336,13 @@ body {
 }
 
 .role-badge.admin {
-  background: rgba(245, 158, 11, 0.14);
-  color: #92400e;
+  background: rgba(26, 109, 255, 0.14);
+  color: #0B1D33;
 }
 
 .role-badge.maintenance {
-  background: rgba(14, 165, 233, 0.12);
-  color: #075985;
+  background: rgba(26, 109, 255, 0.12);
+  color: #0B1D33;
 }
 
 .role-badge.operator {
@@ -329,7 +352,7 @@ body {
 
 .role-badge.machine {
   background: rgba(51, 65, 85, 0.12);
-  color: #334155;
+  color: #142845;
 }
 
 .account-name {
@@ -356,7 +379,7 @@ body {
 
 .icon-btn:hover {
   border-color: #7dd3fc;
-  color: #0369a1;
+  color: #0B1D33;
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 12px 22px rgba(14, 165, 233, 0.2);
 }
@@ -396,7 +419,7 @@ body {
 
 .switch-btn::after {
   content: '⇄';
-  color: #0f172a;
+  color: #0B1D33;
 }
 
 .logout-btn::after {
@@ -423,7 +446,7 @@ body {
 }
 
 .status-footer {
-  border-top: 1px solid rgba(185, 197, 212, 0.7);
+  border-top: 1px solid rgba(11, 29, 51, 0.12);
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
 }
@@ -496,7 +519,7 @@ body {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.6px;
-  color: #0f172a;
+  color: #0B1D33;
   text-transform: uppercase;
 }
 
@@ -518,7 +541,7 @@ body {
   background: #fff;
   border: 1px solid #d7e0ea;
   border-radius: 12px;
-  color: #0f172a;
+  color: #0B1D33;
   padding: 11px 12px;
   transition: 0.2s ease;
 }
@@ -560,7 +583,7 @@ button:focus-visible {
 .btn-primary {
   border: 0;
   color: #fff;
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #1A6DFF 0%, #1A6DFF 100%);
 }
 
 .btn-primary:hover:not(:disabled) {

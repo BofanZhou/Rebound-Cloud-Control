@@ -1,6 +1,6 @@
-# 钢管回弹智能补偿 Web 原型系统
+# ZIKOI 钢管回弹云控管理系统
 
-第一阶段原型系统 - 多机管理版本
+ZIKOI 智块 — 钢管回弹智能补偿云控系统
 
 ## 项目概述
 
@@ -118,6 +118,8 @@ npm run dev
 ```
 
 前端服务将在 `http://localhost:5173` 启动
+
+展示页草稿访问地址：`http://localhost:5173/showcase`
 
 ## 使用说明
 
@@ -260,16 +262,34 @@ Authorization: Bearer {token}
 
 ## 数据存储
 
-### 机器数据隔离
-每个机器有独立的存储目录：
+### 数据库方案（V2.0+）
+使用 **SQLite**（本地开发）或 **PostgreSQL**（生产环境）。
+
+通过环境变量切换数据库：
+```bash
+# 默认 SQLite（零配置，文件位于 data/rebound.db）
+
+# 生产环境 PostgreSQL
+export DATABASE_URL="postgresql://user:pass@host/dbname"
+```
+
+### 数据表
+
+| 表名 | 说明 |
+|------|------|
+| `users` | 用户账户信息 |
+| `machines` | 机器基本信息 |
+| `history_records` | 加工历史记录（按 machine_id 隔离） |
+
+### V1.0 旧存储结构（JSON 文件）
 ```
 data/
 ├── machines/
 │   ├── {machine_id}/
-│   │   ├── machine.json    # 机器基本信息
-│   │   └── history.json    # 历史记录
+│   │   ├── machine.json
+│   │   └── history.json
 │   └── ...
-└── users.json              # 用户数据
+└── users.json
 ```
 
 ## 推荐规则说明
@@ -346,6 +366,31 @@ cd backend
 python main.py                    # 启动服务
 uvicorn main:app --reload         # 使用 uvicorn 启动（带热重载）
 ```
+
+## 软著文档生成
+
+项目提供一键生成软著材料的脚本：
+
+```bash
+python tools/generate_softcopyright_docs.py
+```
+
+如提示缺少依赖，请先安装：
+
+```bash
+pip install python-docx
+```
+
+默认会在项目根目录生成三个文件：
+- `软著源码汇总.docx`（说明版）
+- `软著源代码提交版_60页.docx`（提交版，3000行/60页/每页50行）
+- `软著源代码汇总_完整版.docx`（全量源码版，随代码规模自动分页）
+
+生成规则说明：
+- 仅使用核心源码：`backend/main.py`、`backend/app/**.py`、`frontend/src/**.(ts|vue)`
+- 提交版按前后抽取规则生成，并默认执行前后端平衡配比（后端1500行、前端1500行；必要时自动按比例调整）
+- 完整版按源码顺序输出全部核心代码，逐行编号，适合“完整源码汇总”场景
+- 文档输出默认脱敏（默认密码和绝对路径掩码），不会修改项目源码
 
 ## 常见问题
 

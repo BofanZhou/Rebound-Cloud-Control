@@ -6,40 +6,9 @@ from fastapi import APIRouter, HTTPException, Header, Query
 from typing import Optional
 from ..models.schemas import ApiResponse
 from ..services.machine_manager import machine_manager
-from ..services.auth import auth_service
+from ..utils import get_token_from_header, get_machine_id_from_token
 
 router = APIRouter(prefix="/history", tags=["历史记录"])
-
-
-def get_token_from_header(authorization: Optional[str]) -> Optional[str]:
-    """从请求头中提取token"""
-    if not authorization or not authorization.startswith("Bearer "):
-        return None
-    return authorization.replace("Bearer ", "")
-
-
-def get_machine_id_from_token(token: str) -> str:
-    """从token中提取机器ID"""
-    token_data = auth_service.verify_token(token)
-    if not token_data:
-        raise HTTPException(status_code=401, detail="token无效或已过期")
-    
-    role = token_data.get("role", "")
-    
-    # 如果是机器直接登录
-    if role == "machine":
-        return token_data.get("user_id", "")
-    
-    # 如果是用户选择了机器，角色格式为 role:machine:machine_id
-    if ":machine:" in role:
-        return role.split(":machine:")[1]
-    
-    # 否则返回第一个可用的机器（用于兼容单机模式）
-    machines = machine_manager.get_all_machines()
-    if machines:
-        return machines[0].id
-    
-    raise HTTPException(status_code=400, detail="未选择机器")
 
 
 @router.get("", response_model=ApiResponse)

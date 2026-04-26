@@ -1,8 +1,9 @@
 """
 Vercel Serverless Functions entry point for the backend API.
+Imports the main FastAPI app from backend/ and wraps with Mangum.
 """
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add backend directory to Python path
@@ -18,106 +19,7 @@ os.environ.setdefault("DATA_DIR", os.environ["USER_DATA_DIR"])
 Path(os.environ["USER_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
 Path(os.environ["MACHINE_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-
-from app.routers import (
-    recommend_router,
-    device_router,
-    history_router,
-    auth_router,
-    machines_router,
-)
-
-APP_VERSION = "0.2.1"
-APP_NAME = "Steel Pipe Springback Compensation API"
-
-app = FastAPI(
-    title=APP_NAME,
-    description="Prototype with multi-machine management and authentication",
-    version=APP_VERSION,
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(_request: Request, exc: HTTPException):
-    message = exc.detail if isinstance(exc.detail, str) else "request failed"
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"code": exc.status_code, "message": message, "data": {}},
-    )
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(_request: Request, exc: RequestValidationError):
-    return JSONResponse(
-        status_code=422,
-        content={
-            "code": 422,
-            "message": "validation failed",
-            "data": {"errors": exc.errors()},
-        },
-    )
-
-
-@app.exception_handler(Exception)
-async def unhandled_exception_handler(_request: Request, _exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"code": 500, "message": "internal server error", "data": {}},
-    )
-
-
-# Primary routes (frontend uses /api/*)
-app.include_router(recommend_router, prefix="/api")
-app.include_router(device_router, prefix="/api")
-app.include_router(history_router, prefix="/api")
-app.include_router(auth_router, prefix="/api")
-app.include_router(machines_router, prefix="/api")
-
-# Compatibility fallback routes (for environments that strip /api)
-app.include_router(recommend_router, prefix="")
-app.include_router(device_router, prefix="")
-app.include_router(history_router, prefix="")
-app.include_router(auth_router, prefix="")
-app.include_router(machines_router, prefix="")
-
-
-@app.get("/")
-async def root():
-    return {
-        "code": 0,
-        "message": "success",
-        "data": {
-            "name": APP_NAME,
-            "version": APP_VERSION,
-            "status": "running",
-            "docs": "/api/docs",
-        },
-    }
-
-
-@app.get("/health")
-async def health_check():
-    return {
-        "code": 0,
-        "message": "success",
-        "data": {"status": "healthy"},
-    }
-
-
-# Vercel Serverless Function handler
+from main import app
 from mangum import Mangum
+
 handler = Mangum(app, lifespan="off")

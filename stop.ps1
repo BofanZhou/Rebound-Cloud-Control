@@ -1,26 +1,32 @@
-# 钢管回弹智能补偿系统 - PowerShell 停止脚本
+# 回弹云控管理系统 - PowerShell 停止脚本
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$host.ui.RawUI.WindowTitle = "钢管回弹智能补偿系统 - 停止脚本"
+$host.ui.RawUI.WindowTitle = "回弹云控管理系统 - 停止脚本"
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  钢管回弹智能补偿系统 - 停止脚本" -ForegroundColor Cyan
+Write-Host "  回弹云控管理系统 - 停止脚本" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
+# 停止后端 (python main.py)
 Write-Host "[1/2] 正在停止后端服务..." -ForegroundColor Yellow
-$backendProcesses = Get-Process -Name "python" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*main.py*" }
+$backendProcesses = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like "*main.py*" }
 if ($backendProcesses) {
-    $backendProcesses | Stop-Process -Force
+    foreach ($proc in $backendProcesses) {
+        Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+    }
     Write-Host "      后端服务已停止" -ForegroundColor Green
 } else {
     Write-Host "      后端服务未运行或已停止" -ForegroundColor Gray
 }
 
+# 停止前端 (vite)
 Write-Host "[2/2] 正在停止前端服务..." -ForegroundColor Yellow
-$frontendProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -like "*vite*" }
+$frontendProcesses = Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -like "*vite*" }
 if ($frontendProcesses) {
-    $frontendProcesses | Stop-Process -Force
+    foreach ($proc in $frontendProcesses) {
+        Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+    }
     Write-Host "      前端服务已停止" -ForegroundColor Green
 } else {
     Write-Host "      前端服务未运行或已停止" -ForegroundColor Gray

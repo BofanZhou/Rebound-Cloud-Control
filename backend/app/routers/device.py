@@ -3,44 +3,15 @@
 GET /api/device/status
 POST /api/device/submit
 """
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, HTTPException, Header, Query, Request
 from typing import Optional
-from ..models.schemas import ApiResponse, TaskSubmitRequest
+from ..models.schemas import ApiResponse, TaskSubmitRequest, HistoryRecord, InputParams, RecommendParams
 from ..services.machine_manager import machine_manager
-from ..services.auth import auth_service
+from ..services.audit_log import log_operation
+from ..utils import get_token_from_header, get_machine_id_from_token
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/device", tags=["设备状态"])
-
-
-def get_token_from_header(authorization: Optional[str]) -> Optional[str]:
-    """从请求头中提取token"""
-    if not authorization or not authorization.startswith("Bearer "):
-        return None
-    return authorization.replace("Bearer ", "")
-
-
-def get_machine_id_from_token(token: str) -> str:
-    """从token中提取机器ID"""
-    token_data = auth_service.verify_token(token)
-    if not token_data:
-        raise HTTPException(status_code=401, detail="token无效或已过期")
-    
-    role = token_data.get("role", "")
-    
-    # 如果是机器直接登录
-    if role == "machine":
-        return token_data.get("user_id", "")
-    
-    # 如果是用户选择了机器，角色格式为 role:machine:machine_id
-    if ":machine:" in role:
-        return role.split(":machine:")[1]
-    
-    # 否则返回第一个可用的机器（用于兼容单机模式）
-    machines = machine_manager.get_all_machines()
-    if machines:
-        return machines[0].id
-    
-    raise HTTPException(status_code=400, detail="未选择机器")
 
 
 @router.get("/status", response_model=ApiResponse)
@@ -114,6 +85,7 @@ async def get_device_status(
 async def submit_task(
     request: TaskSubmitRequest,
     authorization: str = Header(None),
+    http_request: Request = None,
     machine_id: Optional[str] = Query(None, description="机器ID（可选，优先使用token中的信息）")
 ):
     """
@@ -179,7 +151,39 @@ async def submit_task(
             recommended_angle=request.recommended_angle,
             recommended_offset=request.recommended_offset,
         )
-        
+
+        # 创建历史记录（任务已提交，状态为 running）
+        history_record = HistoryRecord(
+            id=result["task_id"],
+            machine_id=machine_id,
+            input_params=InputParams(
+                diameter=request.diameter,
+                thickness=request.thickness,
+                material=request.material,
+                target_angle=request.target_angle,
+            ),
+            recommend_params=RecommendParams(
+                recommended_angle=request.recommended_angle,
+                recommended_offset=request.recommended_offset,
+                explanation="",
+            ),
+            execute_result=None,
+            created_at=datetime.now(timezone.utc).isoformat(),
+            completed_at=None,
+        )
+        machine_manager.add_history(machine_id, history_record)
+
+        # 记录操作日志
+        log_operation(
+            username="operator",
+            role="operator",
+            action="submit_task",
+            target_type="task",
+            target_id=result["task_id"],
+            detail=f"提交任务: 管径{request.diameter}mm 材质{request.material}",
+            ip_address=http_request.client.host if http_request and http_request.client else None,
+        )
+
         return ApiResponse(
             code=0,
             message="success",

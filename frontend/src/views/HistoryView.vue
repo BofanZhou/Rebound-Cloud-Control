@@ -1,17 +1,10 @@
 <template>
   <div class="history">
-    <div class="page-header">
-      <h2 class="page-title">
-        <span class="title-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-        </span>
-        历史记录
-      </h2>
-      <span class="page-subtitle">OPERATION HISTORY</span>
-    </div>
+    <PageHeader
+      title="历史记录"
+      subtitle="OPERATION HISTORY"
+      :icon="pageIcon"
+    />
     
     <div class="toolbar">
       <button class="btn-refresh" @click="handleRefresh" :disabled="historyStore.loading">
@@ -243,10 +236,16 @@
 import { ref, computed, onMounted } from 'vue'
 import { useHistoryStore } from '../stores/history'
 import { useAuthStore } from '../stores/auth'
+import { useToastStore } from '../stores/toast'
 import type { HistoryRecord, DeviceStatus } from '../types'
+import { formatTime, formatDeviation } from '../utils'
+import PageHeader from '../components/PageHeader.vue'
+
+const pageIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`
 
 const historyStore = useHistoryStore()
 const authStore = useAuthStore()
+const toast = useToastStore()
 
 // 获取当前机器ID
 const currentMachineId = computed(() => authStore.currentMachine?.id)
@@ -267,27 +266,17 @@ function closeModal() {
 
 function handleRefresh() {
   historyStore.fetchHistory(20, currentMachineId.value)
-  alert('刷新成功')
+  toast.show('刷新成功', 'success')
 }
 
 function handleClear() {
   if (confirm('确定要清空所有历史记录吗？')) {
     historyStore.clearRecords()
-    alert('已清空历史记录')
+    toast.show('已清空历史记录', 'success')
   }
 }
 
 // 工具函数
-function formatTime(time: string | undefined): string {
-  if (!time) return '-'
-  return new Date(time).toLocaleString('zh-CN')
-}
-
-function formatDeviation(deviation: number): string {
-  const sign = deviation >= 0 ? '+' : ''
-  return `${sign}${deviation.toFixed(2)}`
-}
-
 function getDeviationClass(deviation: number): string {
   const abs = Math.abs(deviation)
   if (abs <= 0.5) return 'success'
@@ -327,48 +316,6 @@ onMounted(() => {
 .history {
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.title-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--industrial-yellow) 0%, #e09400 100%);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #000;
-}
-
-.title-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.page-subtitle {
-  font-family: var(--font-display);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 2px;
 }
 
 /* 工具栏 */
@@ -430,7 +377,7 @@ onMounted(() => {
   border: 1px solid var(--border-color);
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(11, 29, 51, 0.08);
 }
 
 .table-container::before {
@@ -491,7 +438,7 @@ onMounted(() => {
 .material-tag {
   display: inline-block;
   padding: 4px 10px;
-  background: rgba(0, 212, 255, 0.1);
+  background: rgba(26, 109, 255, 0.1);
   border: 1px solid var(--industrial-blue);
   border-radius: 3px;
   font-size: 11px;
@@ -562,7 +509,7 @@ onMounted(() => {
 }
 
 .status-badge.running {
-  background: rgba(0, 212, 255, 0.1);
+  background: rgba(26, 109, 255, 0.1);
   color: var(--industrial-blue);
 }
 
@@ -681,7 +628,7 @@ onMounted(() => {
   max-width: 600px;
   max-height: 80vh;
   overflow: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(11, 29, 51, 0.12);
 }
 
 .modal-header {

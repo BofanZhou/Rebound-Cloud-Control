@@ -1,16 +1,10 @@
 <template>
   <div class="machine-select-page">
-    <div class="page-header">
-      <h1>选择机器</h1>
-      <p class="subtitle">请选择要管理的机器设备</p>
-      
-      <!-- 用户信息 -->
-      <div class="user-info">
-        <span class="role-badge" :class="userRole">{{ roleLabel }}</span>
-        <span class="user-name">{{ authStore.user?.name }}</span>
-        <button class="logout-btn" @click="handleLogout">退出</button>
-      </div>
-    </div>
+    <PageHeader
+      title="选择机器"
+      subtitle="MACHINE SELECTION"
+      :icon="pageIcon"
+    />
 
     <!-- 加载状态 -->
     <div v-if="loading" class="loading-state">
@@ -67,6 +61,16 @@
           </span>
         </div>
         
+        <!-- 管理操作（仅管理员） -->
+        <div v-if="authStore.isAdmin" class="machine-admin-actions" @click.stop>
+          <button class="admin-btn edit" @click.stop="openEdit(machine)" title="编辑">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="admin-btn delete" @click.stop="handleDelete(machine)" title="删除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+
         <!-- 操作提示 -->
         <div class="machine-action">
           <span>点击进入管理</span>
@@ -124,39 +128,61 @@
         </form>
       </div>
     </div>
+
+    <!-- 编辑机器弹窗 -->
+    <div v-if="showEditDialog" class="modal-overlay" @click.self="showEditDialog = false">
+      <div class="modal-content">
+        <h3>编辑机器</h3>
+        <form @submit.prevent="handleEdit">
+          <div class="form-group">
+            <label>机器名称</label>
+            <input v-model="editForm.name" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>机器位置</label>
+            <input v-model="editForm.location" type="text" required />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="showEditDialog = false">取消</button>
+            <button type="submit" class="btn-confirm" :disabled="editing">
+              {{ editing ? '保存中...' : '保存' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { getMachines, createMachine } from '../api'
+import { useToastStore } from '../stores/toast'
+import { getMachines, createMachine, updateMachine, deleteMachine } from '../api'
 import type { Machine, MachineStatus } from '../types'
+import { formatTime } from '../utils'
+import PageHeader from '../components/PageHeader.vue'
+
+const pageIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>`
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToastStore()
 
 const machines = ref<Machine[]>([])
 const loading = ref(false)
 const error = ref('')
 const showAddDialog = ref(false)
 const adding = ref(false)
+const showEditDialog = ref(false)
+const editing = ref(false)
+const editTarget = ref<Machine | null>(null)
+const editForm = ref({ name: '', location: '' })
 
 const newMachine = ref({
   name: '',
   location: '',
-})
-
-const userRole = computed(() => authStore.userRole || '')
-
-const roleLabel = computed(() => {
-  const labels: Record<string, string> = {
-    admin: '管理员',
-    maintenance: '维修人员',
-    operator: '操作员',
-  }
-  return labels[userRole.value] || userRole.value
 })
 
 function statusLabel(status: MachineStatus): string {
@@ -166,20 +192,6 @@ function statusLabel(status: MachineStatus): string {
     maintenance: '维护中',
   }
   return labels[status]
-}
-
-function formatTime(time: string): string {
-  try {
-    const date = new Date(time)
-    return date.toLocaleString('zh-CN', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  } catch {
-    return time
-  }
 }
 
 async function fetchMachines() {
@@ -211,7 +223,7 @@ async function selectMachine(machine: Machine) {
   if (success) {
     router.push('/')
   } else {
-    alert(authStore.error || '选择机器失败')
+    toast.show(authStore.error || '选择机器失败', 'error')
   }
 }
 
@@ -225,18 +237,52 @@ async function handleAddMachine() {
       showAddDialog.value = false
       newMachine.value = { name: '', location: '' }
     } else {
-      alert(res.message)
+      toast.show(res.message, 'error')
     }
   } catch (err) {
-    alert(err instanceof Error ? err.message : '添加机器失败')
+    toast.show(err instanceof Error ? err.message : '添加机器失败', 'error')
   } finally {
     adding.value = false
   }
 }
 
-function handleLogout() {
-  authStore.logout()
-  router.push('/login')
+function openEdit(machine: Machine) {
+  editTarget.value = machine
+  editForm.value = { name: machine.name, location: machine.location }
+  showEditDialog.value = true
+}
+
+async function handleEdit() {
+  if (!editTarget.value) return
+  editing.value = true
+  try {
+    const res = await updateMachine(editTarget.value.id, editForm.value)
+    if (res.code === 0) {
+      showEditDialog.value = false
+      const idx = machines.value.findIndex(m => m.id === editTarget.value!.id)
+      if (idx >= 0) machines.value[idx] = res.data
+    } else {
+      toast.show('修改失败: ' + res.message, 'error')
+    }
+  } catch (err) {
+    toast.show('修改失败', 'error')
+  } finally {
+    editing.value = false
+  }
+}
+
+async function handleDelete(machine: Machine) {
+  if (!confirm(`确定要删除机器 "${machine.name}" (${machine.id}) 吗？`)) return
+  try {
+    const res = await deleteMachine(machine.id)
+    if (res.code === 0) {
+      machines.value = machines.value.filter(m => m.id !== machine.id)
+    } else {
+      toast.show('删除失败: ' + res.message, 'error')
+    }
+  } catch (err) {
+    toast.show('删除失败', 'error')
+  }
 }
 
 onMounted(() => {
@@ -249,136 +295,6 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px;
-}
-
-.page-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.page-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.5px;
-}
-
-.page-header .subtitle {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.role-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.role-badge.admin {
-  background: rgba(245, 166, 35, 0.1);
-  border: 1px solid var(--industrial-yellow);
-  color: var(--industrial-yellow);
-}
-
-.role-badge.maintenance {
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid var(--industrial-blue);
-  color: var(--industrial-blue);
-}
-
-.role-badge.operator {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid var(--industrial-green);
-  color: var(--industrial-green);
-}
-
-.user-name {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.logout-btn {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-secondary);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-left: auto;
-}
-
-.logout-btn:hover {
-  border-color: var(--industrial-red);
-  color: var(--industrial-red);
-  box-shadow: 0 10px 20px rgba(220, 38, 38, 0.14);
-}
-
-/* Loading & Error States */
-.loading-state,
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 60px 24px;
-  color: var(--text-secondary);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-color);
-  border-top-color: var(--industrial-yellow);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.error-state .error-icon {
-  width: 48px;
-  height: 48px;
-  color: var(--industrial-red);
-}
-
-.error-state .error-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.error-state button {
-  padding: 8px 24px;
-  background: var(--metal-dark);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.error-state button:hover {
-  border-color: var(--industrial-yellow);
-  color: var(--industrial-yellow);
 }
 
 /* Machines Grid */
@@ -544,6 +460,58 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
+.machine-admin-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.machine-card:hover .machine-admin-actions {
+  opacity: 1;
+}
+
+.admin-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.admin-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.admin-btn.edit {
+  color: var(--industrial-blue);
+}
+
+.admin-btn.edit:hover {
+  background: var(--industrial-blue);
+  color: white;
+}
+
+.admin-btn.delete {
+  color: #ef4444;
+}
+
+.admin-btn.delete:hover {
+  background: #ef4444;
+  color: white;
+}
+
 .machine-card:hover .machine-action {
   color: var(--industrial-yellow);
 }
@@ -634,7 +602,7 @@ onMounted(() => {
   padding: 32px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(11, 29, 51, 0.12);
 }
 
 .modal-content h3 {
@@ -704,7 +672,7 @@ onMounted(() => {
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, var(--industrial-blue) 0%, #0284c7 100%);
+  background: linear-gradient(135deg, var(--industrial-blue) 0%, #1A6DFF 100%);
   border: 1px solid var(--industrial-blue);
   color: #fff;
   font-weight: 600;
@@ -713,7 +681,7 @@ onMounted(() => {
 }
 
 .btn-confirm:hover:not(:disabled) {
-  box-shadow: 0 14px 28px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 14px 28px rgba(26, 109, 255, 0.3);
   transform: translateY(-1px);
 }
 
@@ -739,11 +707,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .machines-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 </style>
