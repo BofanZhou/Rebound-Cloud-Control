@@ -2,30 +2,14 @@
 chcp 65001 >nul
 title 回弹云控管理系统 - 停止脚本
 
-echo ============================================
-echo   回弹云控管理系统 - 停止脚本
-echo ============================================
-echo.
+echo [信息] 正在停止回弹云控管理系统服务...
 
-echo [1/2] 正在停止后端服务...
-taskkill /F /FI "IMAGENAME eq python.exe" /FI "COMMANDLINE like *main.py*" >nul 2>&1
-if %errorlevel% == 0 (
-    echo       后端服务已停止
-) else (
-    echo       后端服务未运行或已停止
-)
+REM 停止 Python 后端进程
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq *main.py*" >nul 2>&1
+taskkill /F /IM python.exe /FI "COMMANDLINE eq *main.py*" >nul 2>&1
 
-echo [2/2] 正在停止前端服务...
-taskkill /F /FI "IMAGENAME eq node.exe" /FI "COMMANDLINE like *vite*" >nul 2>&1
-if %errorlevel% == 0 (
-    echo       前端服务已停止
-) else (
-    echo       前端服务未运行或已停止
-)
+REM 停止 Node 前端进程
+taskkill /F /IM node.exe >nul 2>&1
 
-echo.
-echo ============================================
-echo   所有服务已停止
-echo ============================================
-echo.
+echo [信息] 服务已停止
 pause
