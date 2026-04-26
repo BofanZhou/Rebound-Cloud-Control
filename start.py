@@ -69,12 +69,24 @@ def find_python():
 
 def run_and_stream(cmd, label, color_key, cwd=None):
     """运行命令并实时输出日志，返回 exit code"""
+    # Windows 下对 .cmd/.bat 命令使用 shell=True 确保能找到
+    use_shell = False
+    resolved_cmd = list(cmd)
+    if sys.platform == "win32":
+        exe = shutil.which(cmd[0])
+        if exe and exe.lower().endswith((".cmd", ".bat")):
+            use_shell = True
+            resolved_cmd = " ".join(str(c) for c in cmd)
+        elif exe:
+            resolved_cmd[0] = exe
+
     log(label, f"执行: {' '.join(str(c) for c in cmd)}", color_key)
     proc = subprocess.Popen(
-        cmd,
+        resolved_cmd,
         cwd=str(cwd) if cwd else None,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        shell=use_shell,
     )
     for line in iter(proc.stdout.readline, b""):
         if not line:
