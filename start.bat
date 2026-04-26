@@ -1,57 +1,88 @@
 @echo off
+setlocal EnableExtensions
 
-title 回弹云控管理系统 - 环境检测与启动
+title Rebound Cloud Control - Launcher
 
-echo.
-echo  ============================================
-echo    回弹云控管理系统 - 环境检测
-echo  ============================================
-echo.
+set "ROOT=%~dp0"
+set "EXIT_CODE=0"
+set "MISSING=0"
+set "PYTHON_EXE="
 
-set MISSING=0
-
-REM ---- 检测 Python ----
-python --version >nul 2>nul
-if errorlevel 1 goto PYTHON_MISSING
-echo   [OK]   Python  ................ 已安装
-goto PYTHON_DONE
-:PYTHON_MISSING
-echo   [FAIL] Python  ................ 未安装
-echo          请双击目录下的 python-*.exe 进行安装
-echo          安装时务必勾选 "Add Python to PATH"
-set MISSING=1
-:PYTHON_DONE
-
-REM ---- 检测 Node.js ----
-node --version >nul 2>nul
-if errorlevel 1 goto NODE_MISSING
-echo   [OK]   Node.js ................ 已安装
-goto NODE_DONE
-:NODE_MISSING
-echo   [FAIL] Node.js ................ 未安装
-echo          请双击目录下的 node-*.msi 进行安装
-set MISSING=1
-:NODE_DONE
-
-echo.
-echo  ============================================
-
-if %MISSING%==1 (
+pushd "%ROOT%" >nul 2>nul
+if errorlevel 1 (
     echo.
-    echo   [错误] 环境检测未通过，请按上方提示安装缺失项。
-    echo          安装完成后，重新双击本脚本即可启动。
-    echo.
-    pause
-    exit /b 1
+    echo [ERROR] Cannot enter project directory:
+    echo         "%ROOT%"
+    set "EXIT_CODE=1"
+    goto END
 )
 
-echo   [通过] 环境检测全部通过，正在启动系统...
+echo.
+echo ============================================
+echo   Rebound Cloud Control - Environment Check
+echo ============================================
 echo.
 
-cd /d "%~dp0"
-python start.py
+where python >nul 2>nul
+if not errorlevel 1 set "PYTHON_EXE=python"
 
-REM 如果 start.py 退出，暂停显示
+if not defined PYTHON_EXE (
+    where py >nul 2>nul
+    if not errorlevel 1 set "PYTHON_EXE=py"
+)
+
+if defined PYTHON_EXE (
+    echo [OK]   Python is installed.
+) else (
+    echo [FAIL] Python is not installed or not in PATH.
+    echo        Install python-*.exe and enable "Add Python to PATH".
+    set "MISSING=1"
+)
+
+where npm >nul 2>nul
+if not errorlevel 1 (
+    echo [OK]   Node.js/npm is installed.
+) else (
+    echo [FAIL] Node.js/npm is not installed or not in PATH.
+    echo        Install node-*.msi and reopen this script.
+    set "MISSING=1"
+)
+
+if not exist "%ROOT%start.py" (
+    echo [FAIL] start.py is missing.
+    set "MISSING=1"
+)
+
 echo.
-echo   系统已停止运行，按任意键关闭窗口。
+echo ============================================
+
+if "%MISSING%"=="1" (
+    echo.
+    echo [ERROR] Environment check failed. Install missing dependencies first.
+    set "EXIT_CODE=1"
+    goto END
+)
+
+echo [OK] Environment check passed. Starting system...
+echo.
+
+if /I "%PYTHON_EXE%"=="py" (
+    py -3 start.py
+) else (
+    python start.py
+)
+set "EXIT_CODE=%ERRORLEVEL%"
+
+echo.
+if not "%EXIT_CODE%"=="0" (
+    echo [ERROR] start.py exited with code %EXIT_CODE%.
+) else (
+    echo [INFO] start.py exited normally.
+)
+
+:END
+echo.
+echo Press any key to close this window...
 pause >nul
+popd >nul 2>nul
+exit /b %EXIT_CODE%
